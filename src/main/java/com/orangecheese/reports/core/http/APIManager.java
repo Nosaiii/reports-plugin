@@ -3,6 +3,7 @@ package com.orangecheese.reports.core.http;
 import com.google.gson.JsonObject;
 import com.orangecheese.reports.ReportsPlugin;
 import com.orangecheese.reports.binding.ServiceConstructor;
+import com.orangecheese.reports.config.APIConfig;
 import com.orangecheese.reports.core.http.encoder.GetParameterEncoder;
 import com.orangecheese.reports.core.http.encoder.IParameterEncoder;
 import com.orangecheese.reports.core.http.encoder.PostParameterEncoder;
@@ -47,11 +48,12 @@ public class APIManager {
 
     @ServiceConstructor
     public APIManager() {
-        protocol = HTTPProtocol.HTTPS;
-        hostName = "reportsplugin.com";
-        port = 443;
+        APIConfig apiConfig = ReportsPlugin.getInstance().getReportsConfig().getApi();
 
-        apiVersion = ReportsPlugin.getInstance().getReportsConfig().getApi().getVersion();
+        protocol = apiConfig.getProtocol();
+        hostName = apiConfig.getHostName();
+        port = apiConfig.getPort();
+        apiVersion = apiConfig.getVersion();
 
         try {
             versionedBaseUrl = new URL(protocol.getName() + "://" + hostName + ":" + port + "/api/v" + apiVersion + "/");
@@ -161,7 +163,7 @@ public class APIManager {
                 requestUri = new URIBuilder(requestUri).setCustomQuery(queryString).build();
             }
 
-            HttpsURLConnection connection = (HttpsURLConnection) requestUri.toURL().openConnection();
+            HttpURLConnection connection = (HttpURLConnection) requestUri.toURL().openConnection();
             connection.setInstanceFollowRedirects(false);
             connection.setRequestMethod(request.getMethod().getValue());
             connection.setRequestProperty("Content-Type", "application/json");
