@@ -32,9 +32,10 @@ public class ReportPlayerCommandArgument implements ICommandArgument {
         ChatPrompt prompt = new ChatPrompt(player, promptArguments -> {
             String playerName = promptArguments[0];
             String message = promptArguments[1];
+            boolean anonymous = promptArguments[2].equalsIgnoreCase("yes");
 
             PlayerProfile playerProfile = PlayerUtility.getProfile(playerName);
-            if(playerProfile == null)
+            if(playerProfile.getUniqueId() == null)
                 throw new RuntimeException("player is null: " + playerName);
             UUID playerUuid = playerProfile.getUniqueId();
 
@@ -44,6 +45,7 @@ public class ReportPlayerCommandArgument implements ICommandArgument {
                     accessToken,
                     player,
                     message,
+                    anonymous,
                     playerUuid,
                     () -> player.sendMessage(ChatColor.GREEN + "A new player report has been submitted!"));
 
@@ -53,19 +55,27 @@ public class ReportPlayerCommandArgument implements ICommandArgument {
         ChatPromptArgument playerArgument = new ChatPromptArgument("What player would you like to report?");
         playerArgument.setPlaceholder(new ChatPromptPlaceholder("player", name -> {
             PlayerProfile profile = PlayerUtility.getProfile(name);
-            if(profile == null)
+            if(profile.getName() == null)
                 return name;
             return profile.getName();
         }));
-        playerArgument.setCondition(new ChatPromptCondition(name -> {
-            PlayerProfile profile = PlayerUtility.getProfile(name);
-            return profile != null;
-        }, "The player '%player%' is invalid! Please try again."));
+        playerArgument.setCondition(new ChatPromptCondition(
+                name -> {
+                    PlayerProfile profile = PlayerUtility.getProfile(name);
+                    return profile.getUniqueId() != null;
+                },
+            "The player '%player%' is invalid! Please try again."));
 
         ChatPromptArgument messageArgument = new ChatPromptArgument("What do you want to report %player% about?");
 
+        ChatPromptArgument anonymousChatPromptArgument = new ChatPromptArgument("Would you like to report anonymously? (Yes/No)");
+        anonymousChatPromptArgument.setCondition(new ChatPromptCondition(
+                argument -> argument.matches("(?i)^(yes|no)$"),
+                "You have given an invalid yes/no value! Please try again."));
+
         prompt.addArgument(playerArgument);
         prompt.addArgument(messageArgument);
+        prompt.addArgument(anonymousChatPromptArgument);
 
         prompt.start();
     }

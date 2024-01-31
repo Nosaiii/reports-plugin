@@ -1,5 +1,6 @@
 package com.orangecheese.reports.core.http.response;
 
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
 import java.text.DateFormat;
@@ -47,7 +48,10 @@ public class ReportResponse<T> {
     public static <T> ReportResponse<T> fromJson(JsonObject json, T attributes) {
         int id = json.get("id").getAsInt();
         int containerId = json.get("container_id").getAsInt();
-        UUID reporterUuid = UUID.fromString(json.get("reporter_uuid").getAsString());
+
+        JsonElement reporterUuidElement = json.get("reporter_uuid");
+        UUID reporterUuid = !reporterUuidElement.isJsonNull() ? UUID.fromString(reporterUuidElement.getAsString()) : null;
+
         String message = json.get("message").getAsString();
         boolean resolved = json.get("resolved").getAsBoolean();
 
