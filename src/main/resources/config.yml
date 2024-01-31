@@ -1,0 +1,25 @@
+# Settings for connection to the Reports API.
+api:
+  version: 1
+
+# Settings to customize the Reports menu.
+menu:
+  title-color: 'r'
+  main:
+    icons:
+      bugs: 'PUFFERFISH'
+      players: 'PLAYER_HEAD'
+      suggestions: 'WRITABLE_BOOK'
+  reports:
+    show-page-number: true
+    use-filters: true
+
+# Settings for the flow of the plugin.
+plugin:
+  use-update-checker: true
+
+# Settings for debugging purposes of the plugin.
+debug:
+  api:
+    log-on-request: false
+    show-error-in-console: true
