@@ -1,5 +1,8 @@
 # Settings for connection to the Reports API.
 api:
+  protocol: 'https'
+  host-name: 'reportsplugin.com'
+  port: 443
   version: 1
 
 # Settings to customize the Reports menu.
