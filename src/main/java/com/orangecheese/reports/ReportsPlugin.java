@@ -6,11 +6,14 @@ import com.orangecheese.reports.command.reports.ReportsCommand;
 import com.orangecheese.reports.config.ReportsConfig;
 import com.orangecheese.reports.core.http.APIManager;
 import com.orangecheese.reports.core.io.ContainerCache;
+import com.orangecheese.reports.event.ChatHistoryEvent;
 import com.orangecheese.reports.service.ReportService;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.ConsoleCommandSender;
+import org.bukkit.event.Listener;
+import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.Objects;
@@ -32,6 +35,8 @@ public class ReportsPlugin extends JavaPlugin {
 
         if(!initializeAPI())
             return;
+
+        registerEvents(new ChatHistoryEvent());
 
         registerCommand("reports", new ReportsCommand());
         registerCommand("report", new ReportCommand());
@@ -62,6 +67,11 @@ public class ReportsPlugin extends JavaPlugin {
         }
 
         return true;
+    }
+
+    private void registerEvents(Listener listener) {
+        PluginManager pluginManager = Bukkit.getServer().getPluginManager();
+        pluginManager.registerEvents(listener, this);
     }
 
     private void registerCommand(String command, CommandExecutor executor) {
