@@ -16,11 +16,14 @@ public abstract class CreateReportRequest extends HTTPRequestWithResponse<EmptyR
 
     private final String message;
 
+    private final boolean anonymous;
+
     public CreateReportRequest(
             String endpoint,
             String accessToken,
             Player player,
             String message,
+            boolean anonymous,
             Runnable onSuccess) {
         super(
                 "report/" + endpoint,
@@ -30,6 +33,7 @@ public abstract class CreateReportRequest extends HTTPRequestWithResponse<EmptyR
         this.accessToken = accessToken;
         this.player = player;
         this.message = message;
+        this.anonymous = anonymous;
     }
 
     @Override
@@ -48,7 +52,8 @@ public abstract class CreateReportRequest extends HTTPRequestWithResponse<EmptyR
     public JsonObject generateJson() {
         JsonObject json = new JsonObject();
         json.addProperty("accessToken", accessToken);
-        json.addProperty("reporterUuid", player.getUniqueId().toString());
+        if(!anonymous)
+            json.addProperty("reporterUuid", player.getUniqueId().toString());
         json.addProperty("message", message);
 
         json = appendJson(json);

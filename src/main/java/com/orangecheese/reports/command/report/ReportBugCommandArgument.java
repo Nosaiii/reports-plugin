@@ -8,6 +8,7 @@ import com.orangecheese.reports.core.http.request.report.CreateBugReportRequest;
 import com.orangecheese.reports.core.io.ContainerCache;
 import com.orangecheese.reports.service.chatprompt.ChatPrompt;
 import com.orangecheese.reports.service.chatprompt.ChatPromptArgument;
+import com.orangecheese.reports.service.chatprompt.ChatPromptCondition;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 
@@ -26,6 +27,7 @@ public class ReportBugCommandArgument implements ICommandArgument {
         ChatPrompt prompt = new ChatPrompt(player, promptArguments -> {
             String message = promptArguments[0];
             String stepsToReproduce = promptArguments[1];
+            boolean anonymous = promptArguments[2].equalsIgnoreCase("yes");
 
             String accessToken = containerCache.getAccessToken();
 
@@ -33,6 +35,7 @@ public class ReportBugCommandArgument implements ICommandArgument {
                     accessToken,
                     player,
                     message,
+                    anonymous,
                     stepsToReproduce,
                     () -> player.sendMessage(ChatColor.GREEN + "A new bug report has been submitted!"));
 
@@ -41,6 +44,12 @@ public class ReportBugCommandArgument implements ICommandArgument {
 
         prompt.addArgument(new ChatPromptArgument("Describe the bug that you had encountered:"));
         prompt.addArgument(new ChatPromptArgument("Describe the steps to reproduce the bug:"));
+
+        ChatPromptArgument anonymousChatPromptArgument = new ChatPromptArgument("Would you like to report anonymously? (Yes/No)");
+        anonymousChatPromptArgument.setCondition(new ChatPromptCondition(
+                argument -> argument.matches("(?i)^(yes|no)$"),
+                "You have given an invalid yes/no value! Please try again."));
+        prompt.addArgument(anonymousChatPromptArgument);
 
         prompt.start();
     }

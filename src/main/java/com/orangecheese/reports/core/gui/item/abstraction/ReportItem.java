@@ -4,7 +4,6 @@ import com.orangecheese.reports.binding.ServiceContainer;
 import com.orangecheese.reports.core.gui.data.ReportAction;
 import com.orangecheese.reports.core.gui.window.abstraction.Window;
 import com.orangecheese.reports.service.ReportService;
-import org.apache.commons.lang.StringUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -48,25 +47,26 @@ public abstract class ReportItem extends WindowItem implements IAutoUpdatingWind
 
         reportActions = new HashMap<>();
 
-        OfflinePlayer offlineReporter = Bukkit.getServer().getOfflinePlayer(reporterUuid);
-
         addReportAction(ClickType.LEFT, new ReportAction(
                 "Left-click to " + (resolved ? "unresolve" : "resolve") + " the report.",
                 (item, player) -> resolve(player, !item.resolved)
         ));
 
-        addReportAction(ClickType.MIDDLE, new ReportAction(
-                "Middle-click to teleport to " + offlineReporter.getName(),
-                (item, player) -> {
-                    if(!offlineReporter.isOnline())
-                        return;
-                    Player reporter = offlineReporter.getPlayer();
-                    if(reporter == null)
-                        return;
-                    player.closeInventory();
-                    player.teleport(reporter.getLocation());
-                }
-        ));
+        if(reporterUuid != null) {
+            OfflinePlayer offlineReporter = Bukkit.getServer().getOfflinePlayer(reporterUuid);
+            addReportAction(ClickType.MIDDLE, new ReportAction(
+                    "Middle-click to teleport to " + offlineReporter.getName(),
+                    (item, player) -> {
+                        if (!offlineReporter.isOnline())
+                            return;
+                        Player reporter = offlineReporter.getPlayer();
+                        if (reporter == null)
+                            return;
+                        player.closeInventory();
+                        player.teleport(reporter.getLocation());
+                    }
+            ));
+        }
     }
 
     @Override
@@ -75,15 +75,21 @@ public abstract class ReportItem extends WindowItem implements IAutoUpdatingWind
         SkullMeta meta = (SkullMeta) item.getItemMeta();
 
         if(meta != null) {
-            OfflinePlayer reporter = Bukkit.getServer().getOfflinePlayer(reporterUuid);
-            meta.setOwningPlayer(reporter);
+            String reportedByLineValue = ChatColor.ITALIC + "Anonymous";
+            if(reporterUuid != null) {
+                OfflinePlayer reporter = Bukkit.getServer().getOfflinePlayer(reporterUuid);
+                meta.setOwningPlayer(reporter);
+                reportedByLineValue =
+                        reporter.getName() +
+                        " " +
+                        "[" + (reporter.isOnline() ? ChatColor.GREEN : ChatColor.DARK_RED) + "⏺" + ChatColor.DARK_GRAY + "]";
+            }
 
             meta.setDisplayName(ChatColor.GOLD + "" + ChatColor.BOLD + "#" + id);
 
             List<String> lore = new ArrayList<>();
-            String reportedByLine = ChatColor.DARK_GRAY + "Reported by " + reporter.getName() +
-                    " " +
-                    "[" + (reporter.isOnline() ? ChatColor.GREEN : ChatColor.DARK_RED) + "⏺" + ChatColor.DARK_GRAY + "]";
+
+            String reportedByLine = ChatColor.DARK_GRAY + "Reported by " + reportedByLineValue;
             lore.add(reportedByLine);
 
             SimpleDateFormat submissionDateFormat = new SimpleDateFormat("dd MMMM yyyy");

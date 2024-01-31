@@ -6,8 +6,8 @@ import org.bukkit.entity.Player;
 public class CreateBugReportRequest extends CreateReportRequest {
     private final String stepsToReproduce;
 
-    public CreateBugReportRequest(String accessToken, Player player, String message, String stepsToReproduce, Runnable onSuccess) {
-        super("create-bug-report", accessToken, player, message, onSuccess);
+    public CreateBugReportRequest(String accessToken, Player player, String message, boolean anonymous, String stepsToReproduce, Runnable onSuccess) {
+        super("create-bug-report", accessToken, player, message, anonymous, onSuccess);
         this.stepsToReproduce = stepsToReproduce;
     }
 

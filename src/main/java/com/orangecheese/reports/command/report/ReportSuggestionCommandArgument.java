@@ -8,6 +8,7 @@ import com.orangecheese.reports.core.http.request.report.CreateSuggestionReportR
 import com.orangecheese.reports.core.io.ContainerCache;
 import com.orangecheese.reports.service.chatprompt.ChatPrompt;
 import com.orangecheese.reports.service.chatprompt.ChatPromptArgument;
+import com.orangecheese.reports.service.chatprompt.ChatPromptCondition;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 
@@ -25,6 +26,7 @@ public class ReportSuggestionCommandArgument implements ICommandArgument {
     public void execute(Player player, String[] arguments, BaseCommand baseCommand) {
         ChatPrompt prompt = new ChatPrompt(player, promptArguments -> {
             String message = promptArguments[0];
+            boolean anonymous = promptArguments[1].equalsIgnoreCase("yes");
 
             String accessToken = containerCache.getAccessToken();
 
@@ -32,12 +34,19 @@ public class ReportSuggestionCommandArgument implements ICommandArgument {
                     accessToken,
                     player,
                     message,
+                    anonymous,
                     () -> player.sendMessage(ChatColor.GREEN + "A new suggestion report has been submitted!"));
 
             apiManager.makeRequest(reportRequest);
         });
 
         prompt.addArgument(new ChatPromptArgument("Describe the suggestion that you would like to submit:"));
+
+        ChatPromptArgument anonymousChatPromptArgument = new ChatPromptArgument("Would you like to report anonymously? (Yes/No)");
+        anonymousChatPromptArgument.setCondition(new ChatPromptCondition(
+                argument -> argument.matches("(?i)^(yes|no)$"),
+                "You have given an invalid yes/no value! Please try again."));
+        prompt.addArgument(anonymousChatPromptArgument);
 
         prompt.start();
     }
