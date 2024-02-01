@@ -110,7 +110,12 @@ public abstract class Window {
     }
 
     public void addItem(WindowItem item) {
+        item.buildInitial(player);
         items.add(item);
+        slottedItems = layout.map(getItems());
+
+        if(inventory != null)
+            notifyUpdate(item);
     }
 
     public void addFilter(WindowFilterItem filterItem) {
@@ -181,7 +186,7 @@ public abstract class Window {
             inventory.setItem(slot, itemStack);
         }
 
-        itemClickEvent = new WindowItemClickEvent(this, slottedItems);
+        itemClickEvent = new WindowItemClickEvent(this);
         ReportsPlugin plugin = ReportsPlugin.getInstance();
         Bukkit.getServer().getPluginManager().registerEvents(itemClickEvent, plugin);
     }
@@ -221,6 +226,16 @@ public abstract class Window {
 
     public WindowItem[] getItems() {
         return items.toArray(new WindowItem[0]);
+    }
+
+    public boolean hasSlottedItem(int slot) {
+        if(slottedItems == null)
+            return false;
+        return slottedItems.containsKey(slot);
+    }
+
+    public WindowItem getItem(int slot) {
+        return slottedItems.get(slot);
     }
 
     public Inventory getInventory() {
