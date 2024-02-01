@@ -33,9 +33,9 @@ public class ChatHistoryCreateRequest extends HTTPRequest implements IHTTPBody {
     @Override
     public JsonObject generateJson() {
         JsonObject json = new JsonObject();
+        json.addProperty("accessToken", accessToken);
         json.addProperty("playerUuid", playerUuid.toString());
         json.addProperty("message", message);
-        json.addProperty("accessToken", accessToken);
         return json;
     }
 }
