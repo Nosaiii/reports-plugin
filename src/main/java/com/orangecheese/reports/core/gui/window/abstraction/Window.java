@@ -110,7 +110,12 @@ public abstract class Window {
     }
 
     public void addItem(WindowItem item) {
+        item.buildInitial(player);
         items.add(item);
+        slottedItems = layout.map(getItems());
+
+        if(inventory != null)
+            notifyUpdate(item);
     }
 
     public void addFilter(WindowFilterItem filterItem) {

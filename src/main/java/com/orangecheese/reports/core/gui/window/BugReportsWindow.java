@@ -6,6 +6,7 @@ import com.orangecheese.reports.core.gui.window.abstraction.ReportsWindow;
 import com.orangecheese.reports.core.http.request.report.ReadBugReportsRequest;
 import com.orangecheese.reports.core.http.response.BugReportAttributes;
 import com.orangecheese.reports.core.http.response.ReportData;
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
 public class BugReportsWindow extends ReportsWindow<BugReportAttributes, ReadBugReportsRequest> {
