@@ -8,8 +8,8 @@ import java.util.UUID;
 public class CreatePlayerReportRequest extends CreateReportRequest {
     private final UUID playerUuid;
 
-    public CreatePlayerReportRequest(String accessToken, Player player, String message, UUID playerUuid, Runnable onSuccess) {
-        super("create-player-report", accessToken, player, message, onSuccess);
+    public CreatePlayerReportRequest(String accessToken, Player player, String message, boolean anonymous, UUID playerUuid, Runnable onSuccess) {
+        super("create-player-report", accessToken, player, message, anonymous, onSuccess);
         this.playerUuid = playerUuid;
     }
 

@@ -12,6 +12,7 @@ public class ReportsCommand extends BaseCommand {
         addArgument("register", new RegisterCommand());
         addArgument("link", new LinkCommand());
         addArgument("changekeyphrase", new ChangeKeyPhraseCommand());
+        addArgument("chathistory", new ChatHistoryCommand());
         addArgument("reload", new ReloadCommand());
     }
 }

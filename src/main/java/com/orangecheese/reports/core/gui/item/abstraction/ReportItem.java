@@ -1,10 +1,11 @@
 package com.orangecheese.reports.core.gui.item.abstraction;
 
 import com.orangecheese.reports.binding.ServiceContainer;
-import com.orangecheese.reports.core.gui.data.ReportAction;
+import com.orangecheese.reports.core.gui.window.ReportActionWindow;
 import com.orangecheese.reports.core.gui.window.abstraction.Window;
-import com.orangecheese.reports.service.ReportService;
-import org.apache.commons.lang.StringUtils;
+import com.orangecheese.reports.core.http.response.ReportData;
+import com.orangecheese.reports.service.PlayerProfileService;
+import com.orangecheese.reports.utility.PlayerUtility;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -13,61 +14,49 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.ClickType;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.SkullMeta;
+import org.bukkit.profile.PlayerProfile;
 import org.bukkit.util.ChatPaginator;
 
 import java.text.SimpleDateFormat;
 import java.util.*;
 
-public abstract class ReportItem extends WindowItem implements IAutoUpdatingWindowItem {
-    private final int id;
+public abstract class ReportItem<T> extends WindowItem {
+    protected final ReportData<T> reportData;
 
-    private final UUID reporterUuid;
-
-    private final String message;
-
-    private boolean resolved;
-
-    private final Date submissionDate;
+    private PlayerProfile reporterProfile;
 
     private final Map<String, String> additionalAttributes;
 
-    private final Map<ClickType, ReportAction> reportActions;
-
     private static final int LINE_LENGTH = 45;
 
-    public ReportItem(Window context, int id, UUID reporterUuid, String message, boolean resolved, Date submissionDate) {
+    public ReportItem(Window context, ReportData<T> reportData) {
         super(context);
-        this.id = id;
-        this.reporterUuid = reporterUuid;
-        this.message = message;
-        this.resolved = resolved;
-        this.submissionDate = submissionDate;
+        this.reportData = reportData;
+
+        PlayerProfileService playerProfileService = ServiceContainer.get(PlayerProfileService.class);
+        Player contextPlayer = context.getPlayer();
+        playerProfileService.get(
+                contextPlayer,
+                reportData.getReporterUuid(),
+                profile -> {
+                    reporterProfile = profile;
+                    notifyUpdate(contextPlayer);
+                });
 
         additionalAttributes = new LinkedHashMap<>();
-        addAdditionalArgument("Message", message);
+        setAdditionalArgument("Message", reportData.getMessage());
 
-        reportActions = new HashMap<>();
+        setOnClickListener(ClickType.LEFT, (item, player) -> {
+            ReportActionWindow<T> actionWindow = new ReportActionWindow<>(player, context.getHistory(), reportData);
 
-        OfflinePlayer offlineReporter = Bukkit.getServer().getOfflinePlayer(reporterUuid);
+            for(WindowItem additionalOption : buildAdditionalOptions(actionWindow))
+                actionWindow.addAdditionalOption(additionalOption);
 
-        addReportAction(ClickType.LEFT, new ReportAction(
-                "Left-click to " + (resolved ? "unresolve" : "resolve") + " the report.",
-                (item, player) -> resolve(player, !item.resolved)
-        ));
-
-        addReportAction(ClickType.MIDDLE, new ReportAction(
-                "Middle-click to teleport to " + offlineReporter.getName(),
-                (item, player) -> {
-                    if(!offlineReporter.isOnline())
-                        return;
-                    Player reporter = offlineReporter.getPlayer();
-                    if(reporter == null)
-                        return;
-                    player.closeInventory();
-                    player.teleport(reporter.getLocation());
-                }
-        ));
+            actionWindow.open(1);
+        });
     }
+
+    public abstract ArrayList<WindowItem> buildAdditionalOptions(Window context);
 
     @Override
     protected ItemStack renderInitial(Player player) {
@@ -75,21 +64,29 @@ public abstract class ReportItem extends WindowItem implements IAutoUpdatingWind
         SkullMeta meta = (SkullMeta) item.getItemMeta();
 
         if(meta != null) {
-            OfflinePlayer reporter = Bukkit.getServer().getOfflinePlayer(reporterUuid);
-            meta.setOwningPlayer(reporter);
+            String reportedByLineValue = ChatColor.ITALIC + "Anonymous";
+            if(reporterProfile != null) {
+                meta.setOwnerProfile(reporterProfile);
 
-            meta.setDisplayName(ChatColor.GOLD + "" + ChatColor.BOLD + "#" + id);
+                OfflinePlayer reporterOfflinePlayer = Bukkit.getServer().getOfflinePlayer(reportData.getReporterUuid());
+
+                reportedByLineValue =
+                        reporterProfile.getName() +
+                        " " +
+                        "[" + (reporterOfflinePlayer.isOnline() ? ChatColor.GREEN : ChatColor.DARK_RED) + "⏺" + ChatColor.DARK_GRAY + "]";
+            }
+
+            meta.setDisplayName(ChatColor.GOLD + "" + ChatColor.BOLD + "#" + reportData.getId());
 
             List<String> lore = new ArrayList<>();
-            String reportedByLine = ChatColor.DARK_GRAY + "Reported by " + reporter.getName() +
-                    " " +
-                    "[" + (reporter.isOnline() ? ChatColor.GREEN : ChatColor.DARK_RED) + "⏺" + ChatColor.DARK_GRAY + "]";
+
+            String reportedByLine = ChatColor.DARK_GRAY + "Reported by " + reportedByLineValue;
             lore.add(reportedByLine);
 
             SimpleDateFormat submissionDateFormat = new SimpleDateFormat("dd MMMM yyyy");
             SimpleDateFormat submissionTimeFormat = new SimpleDateFormat("HH:mm:ss");
-            String dateString = submissionDateFormat.format(submissionDate);
-            String timeString = submissionTimeFormat.format(submissionDate);
+            String dateString = submissionDateFormat.format(reportData.getCreatedAt());
+            String timeString = submissionTimeFormat.format(reportData.getCreatedAt());
             lore.add(ChatColor.DARK_GRAY + dateString + " at " + timeString);
 
             if(!additionalAttributes.isEmpty()) {
@@ -102,15 +99,10 @@ public abstract class ReportItem extends WindowItem implements IAutoUpdatingWind
                 }
             }
 
-            if(!reportActions.isEmpty()) {
-                lore.add("");
-                for(ClickType reportActionClickType : reportActions.keySet()) {
-                    ReportAction reportAction = reportActions.get(reportActionClickType);
-                    lore.add(ChatColor.BLUE + reportAction.getMessage());
-                }
-            }
+            lore.add("");
+            lore.add(ChatColor.BLUE + "Left-click for more options.");
 
-            if(resolved) {
+            if(reportData.isResolved()) {
                 lore.add("");
                 lore.add(ChatColor.GREEN + "✓ Resolved");
             }
@@ -123,22 +115,7 @@ public abstract class ReportItem extends WindowItem implements IAutoUpdatingWind
         return item;
     }
 
-    public void addReportAction(ClickType type, ReportAction action) {
-        setOnClickListener(type, (item, player) -> action.invoke((ReportItem) item, player));
-        reportActions.put(type, action);
-    }
-
-    public void resolve(Player player, boolean resolved) {
-        this.resolved = resolved;
-
-        ReportService reportService = ServiceContainer.get(ReportService.class);
-        reportService.resolve(player, id, resolved, this::notifyRefresh);
-
-        cachedItemStack = buildInitial(player);
-        notifyUpdate();
-    }
-
-    protected void addAdditionalArgument(String key, String value) {
+    protected void setAdditionalArgument(String key, String value) {
         additionalAttributes.put(key, value);
     }
 }

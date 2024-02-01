@@ -12,16 +12,11 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 
-import java.util.HashMap;
-
 public class WindowItemClickEvent implements Listener {
     private final Window window;
 
-    private final HashMap<Integer, WindowItem> items;
-
-    public WindowItemClickEvent(Window window, HashMap<Integer, WindowItem> items) {
+    public WindowItemClickEvent(Window window) {
         this.window = window;
-        this.items = items;
     }
 
     @EventHandler
@@ -55,10 +50,10 @@ public class WindowItemClickEvent implements Listener {
         }
 
         int clickedSlot = event.getSlot();
-        if(!items.containsKey(clickedSlot))
+        if(!window.hasSlottedItem(clickedSlot))
             return;
 
-        WindowItem clickedItem = items.get(clickedSlot);
+        WindowItem clickedItem = window.getItem(clickedSlot);
         clickedItem.onClick(event.getClick(), player);
     }
 }

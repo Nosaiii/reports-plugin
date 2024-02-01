@@ -1,20 +1,20 @@
 package com.orangecheese.reports.core.gui.item;
 
 import com.orangecheese.reports.core.gui.item.abstraction.ReportItem;
+import com.orangecheese.reports.core.gui.item.abstraction.WindowItem;
 import com.orangecheese.reports.core.gui.window.abstraction.Window;
-import org.bukkit.entity.Player;
-import org.bukkit.inventory.ItemStack;
+import com.orangecheese.reports.core.http.response.ReportData;
+import com.orangecheese.reports.core.http.response.SuggestionReportAttributes;
 
-import java.util.Date;
-import java.util.UUID;
+import java.util.ArrayList;
 
-public class SuggestionReportItem extends ReportItem {
-    public SuggestionReportItem(Window context, int id, UUID reporterUuid, String message, boolean resolved, Date submissionDate) {
-        super(context, id, reporterUuid, message, resolved, submissionDate);
+public class SuggestionReportItem extends ReportItem<SuggestionReportAttributes> {
+    public SuggestionReportItem(Window context, ReportData<SuggestionReportAttributes> reportData) {
+        super(context, reportData);
     }
 
     @Override
-    public ItemStack update(Player player) {
-        return buildInitial(player);
+    public ArrayList<WindowItem> buildAdditionalOptions(Window context) {
+        return new ArrayList<>();
     }
 }

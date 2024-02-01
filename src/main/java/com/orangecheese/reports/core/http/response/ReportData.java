@@ -1,5 +1,6 @@
 package com.orangecheese.reports.core.http.response;
 
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
 import java.text.DateFormat;
@@ -8,7 +9,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.UUID;
 
-public class ReportResponse<T> {
+public class ReportData<T> {
     private final int id;
 
     private final int containerId;
@@ -17,7 +18,7 @@ public class ReportResponse<T> {
 
     private final String message;
 
-    private final boolean resolved;
+    private boolean resolved;
 
     private final Date createdAt;
 
@@ -25,7 +26,7 @@ public class ReportResponse<T> {
 
     private final T attributes;
 
-    public ReportResponse(
+    public ReportData(
             int id,
             int containerId,
             UUID reporterUuid,
@@ -44,10 +45,13 @@ public class ReportResponse<T> {
         this.attributes = attributes;
     }
 
-    public static <T> ReportResponse<T> fromJson(JsonObject json, T attributes) {
+    public static <T> ReportData<T> fromJson(JsonObject json, T attributes) {
         int id = json.get("id").getAsInt();
         int containerId = json.get("container_id").getAsInt();
-        UUID reporterUuid = UUID.fromString(json.get("reporter_uuid").getAsString());
+
+        JsonElement reporterUuidElement = json.get("reporter_uuid");
+        UUID reporterUuid = !reporterUuidElement.isJsonNull() ? UUID.fromString(reporterUuidElement.getAsString()) : null;
+
         String message = json.get("message").getAsString();
         boolean resolved = json.get("resolved").getAsBoolean();
 
@@ -61,7 +65,7 @@ public class ReportResponse<T> {
             throw new RuntimeException(e);
         }
 
-        return new ReportResponse<>(id, containerId, reporterUuid, message, resolved, createdAt, updatedAt, attributes);
+        return new ReportData<>(id, containerId, reporterUuid, message, resolved, createdAt, updatedAt, attributes);
     }
 
     public int getId() {
@@ -78,6 +82,10 @@ public class ReportResponse<T> {
 
     public String getMessage() {
         return message;
+    }
+
+    public void setResolved(boolean resolved) {
+        this.resolved = resolved;
     }
 
     public boolean isResolved() {

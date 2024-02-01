@@ -5,39 +5,26 @@ import com.orangecheese.reports.core.gui.item.BugReportItem;
 import com.orangecheese.reports.core.gui.window.abstraction.ReportsWindow;
 import com.orangecheese.reports.core.http.request.report.ReadBugReportsRequest;
 import com.orangecheese.reports.core.http.response.BugReportAttributes;
-import com.orangecheese.reports.core.http.response.ReportResponse;
+import com.orangecheese.reports.core.http.response.ReportData;
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
-public class BugReportsWindow extends ReportsWindow {
+public class BugReportsWindow extends ReportsWindow<BugReportAttributes, ReadBugReportsRequest> {
     public BugReportsWindow(Player player, WindowHistory history) {
         super(player, "Bug reports", history);
     }
 
     @Override
-    public void onInitialize(int page) {
-        super.onInitialize(page);
-
-        boolean showResolved = resolvedFilter.isActive();
-        boolean showUnresolved = unresolvedFilter.isActive();
-
-        ReadBugReportsRequest reportsRequest = new ReadBugReportsRequest(
+    public ReadBugReportsRequest prepareRequest(int page, boolean showResolved, boolean showUnresolved) {
+        return new ReadBugReportsRequest(
                 page,
                 showResolved,
                 showUnresolved,
                 response -> {
-                    for(ReportResponse<BugReportAttributes> report : response.getReports()) {
-                        BugReportItem item = new BugReportItem(
-                                this,
-                                report.getId(),
-                                report.getReporterUuid(),
-                                report.getMessage(),
-                                report.isResolved(),
-                                report.getCreatedAt(),
-                                report.getAttributes().getStepsToReproduce()
-                        );
+                    for(ReportData<BugReportAttributes> report : response.getReports()) {
+                        BugReportItem item = new BugReportItem(this, report);
                         addItem(item);
                     }
                 });
-        apiManager.makeRequest(reportsRequest);
     }
 }

@@ -3,6 +3,7 @@ package com.orangecheese.reports.core.http;
 import com.google.gson.JsonObject;
 import com.orangecheese.reports.ReportsPlugin;
 import com.orangecheese.reports.binding.ServiceConstructor;
+import com.orangecheese.reports.config.APIConfig;
 import com.orangecheese.reports.core.http.encoder.GetParameterEncoder;
 import com.orangecheese.reports.core.http.encoder.IParameterEncoder;
 import com.orangecheese.reports.core.http.encoder.PostParameterEncoder;
@@ -10,6 +11,7 @@ import com.orangecheese.reports.core.http.request.HTTPMethod;
 import com.orangecheese.reports.core.http.request.HTTPRequest;
 import com.orangecheese.reports.core.http.request.HTTPRequestWithResponse;
 import com.orangecheese.reports.core.http.request.IHTTPBody;
+import com.orangecheese.reports.utility.ThreadUtility;
 import org.apache.http.client.utils.URIBuilder;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -24,6 +26,9 @@ import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Queue;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
 import java.util.function.Consumer;
 
 public class APIManager {
@@ -45,13 +50,16 @@ public class APIManager {
 
     private QueuedHTTPRequest currentlyProcessedRequest;
 
+    private static final Executor SINGLE_THREAD_EXECUTOR = Executors.newSingleThreadExecutor();
+
     @ServiceConstructor
     public APIManager() {
-        protocol = HTTPProtocol.HTTPS;
-        hostName = "reportsplugin.com";
-        port = 443;
+        APIConfig apiConfig = ReportsPlugin.getInstance().getReportsConfig().getApi();
 
-        apiVersion = ReportsPlugin.getInstance().getReportsConfig().getApi().getVersion();
+        protocol = apiConfig.getProtocol();
+        hostName = apiConfig.getHostName();
+        port = apiConfig.getPort();
+        apiVersion = apiConfig.getVersion();
 
         try {
             versionedBaseUrl = new URL(protocol.getName() + "://" + hostName + ":" + port + "/api/v" + apiVersion + "/");
@@ -94,107 +102,115 @@ public class APIManager {
 
         currentlyProcessedRequest = request;
 
-        boolean requestResult = makeRequest(request.getRequest());
-        request.consumeOnRequestDone(requestResult);
-
-        currentlyProcessedRequest = null;
+        makeRequest(request.getRequest()).thenAccept(success -> {
+            request.consumeOnRequestDone(true);
+            currentlyProcessedRequest = null;
+        });
     }
 
-    public boolean makeRequest(HTTPRequest request) {
-        RequestResult result = executeRequest(request);
+    public CompletableFuture<Boolean> makeRequest(HTTPRequest request) {
+        CompletableFuture<RequestResult> resultTask = executeRequest(request);
 
-        if(!result.isSuccess()) {
-            try {
-                InputStream inputStream = result.getStream();
-                JsonObject jsonResponse = null;
+        return resultTask.thenApply(result -> {
+            if(!result.isSuccess()) {
+                ThreadUtility.executeOnMainThread(() -> {
+                    try {
+                        InputStream inputStream = result.getStream();
+                        JsonObject jsonResponse = null;
 
-                if (request instanceof HTTPRequestWithResponse<?, ?> requestResponse) {
-                    jsonResponse = requestResponse.processFailureStream(inputStream);
+                        if (request instanceof HTTPRequestWithResponse<?, ?> requestResponse) {
+                            jsonResponse = requestResponse.processFailureStream(inputStream);
+                        } else {
+                            request.invokeFailure();
+                        }
+
+                        if(ReportsPlugin.getInstance().getReportsConfig().getDebug().isApiShowErrorInConsole()) {
+                            String errorResponse;
+                            if (jsonResponse == null)
+                                errorResponse = "null";
+                            else
+                                errorResponse = jsonResponse.toString();
+
+                            Bukkit.getConsoleSender().sendMessage(
+                                    ChatColor.RED + "ERROR!" + ChatColor.WHITE + " An error occurred trying to make a request to the endpoint.",
+                                    ChatColor.WHITE + "{endpoint:\"" + request.getUrl() + "\",status_code:" + result.getStatusCode() + ",response:" + errorResponse + "}"
+                            );
+                        }
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
+                });
+
+                return false;
+            }
+
+            ThreadUtility.executeOnMainThread(() -> {
+                if(request instanceof HTTPRequestWithResponse<?, ?> requestResponse) {
+                    try {
+                        requestResponse.processStream(result.getStream());
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
                 } else {
-                    request.invokeFailure();
+                    request.invokeSuccess();
                 }
+            });
 
-                if(ReportsPlugin.getInstance().getReportsConfig().getDebug().isApiShowErrorInConsole()) {
-                    String errorResponse;
-                    if (jsonResponse == null)
-                        errorResponse = "null";
-                    else
-                        errorResponse = jsonResponse.toString();
-
-                    Bukkit.getConsoleSender().sendMessage(
-                            ChatColor.RED + "ERROR!" + ChatColor.WHITE + " An error occurred trying to make a request to the endpoint.",
-                            ChatColor.WHITE + "{endpoint:\"" + request.getUrl() + "\",status_code:" + result.getStatusCode() + ",response:" + errorResponse + "}"
-                    );
-                }
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-
-            return false;
-        }
-
-        if(request instanceof HTTPRequestWithResponse<?, ?> requestResponse) {
-            try {
-                requestResponse.processStream(result.getStream());
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-        } else {
-            request.invokeSuccess();
-        }
-
-        return true;
+            return true;
+        });
     }
 
-    private RequestResult executeRequest(HTTPRequest request) {
-        if(ReportsPlugin.getInstance().getReportsConfig().getDebug().isApiLogOnRequest())
-            Bukkit.getConsoleSender().sendMessage(ChatColor.DARK_GRAY + "Requesting to endpoint '" + request.getUrl() + "'...");
+    private CompletableFuture<RequestResult> executeRequest(HTTPRequest request) {
+        return CompletableFuture.supplyAsync(() -> {
+            if(ReportsPlugin.getInstance().getReportsConfig().getDebug().isApiLogOnRequest())
+                Bukkit.getConsoleSender().sendMessage(ChatColor.DARK_GRAY + "Requesting to endpoint '" + request.getUrl() + "'...");
 
-        try {
-            URI requestUri = versionedBaseUrl.toURI().resolve("./" + request.getUrl());
-
-            if(request instanceof IHTTPBody requestBody && request.getMethod() == HTTPMethod.GET) {
-                JsonObject requestBodyJson = requestBody.generateJson();
-                byte[] bodyBytes = encoders.get(request.getMethod()).encode(requestBodyJson);
-
-                String queryString = new String(bodyBytes, StandardCharsets.UTF_8);
-                requestUri = new URIBuilder(requestUri).setCustomQuery(queryString).build();
-            }
-
-            HttpsURLConnection connection = (HttpsURLConnection) requestUri.toURL().openConnection();
-            connection.setInstanceFollowRedirects(false);
-            connection.setRequestMethod(request.getMethod().getValue());
-            connection.setRequestProperty("Content-Type", "application/json");
-            connection.setRequestProperty("Accept", "application/json");
-
-            if(request instanceof IHTTPBody requestBody && request.getMethod() != HTTPMethod.GET) {
-                JsonObject requestBodyJson = requestBody.generateJson();
-                byte[] bodyBytes = encoders.get(request.getMethod()).encode(requestBodyJson);
-
-                connection.setDoOutput(true);
-                OutputStream outputStream = connection.getOutputStream();
-                outputStream.write(bodyBytes);
-                outputStream.flush();
-                outputStream.close();
-            }
-
-            int statusCode = connection.getResponseCode();
-            if(statusCode >= 400 && statusCode <= 599)
-                return RequestResult.fromFailure(statusCode, connection.getErrorStream());
-
-            InputStream responseStream;
             try {
-                responseStream = connection.getInputStream();
-            } catch(IOException e) {
-                return RequestResult.fromFailure(statusCode, connection.getErrorStream());
-            }
+                URI requestUri = versionedBaseUrl.toURI().resolve("./" + request.getUrl());
 
-            return RequestResult.fromSuccess(statusCode, responseStream);
-        } catch (IOException | URISyntaxException e) {
-            e.printStackTrace();
-            failedConnectionHandler.run();
-            return RequestResult.fromFailure(500, null);
-        }
+                if(request instanceof IHTTPBody requestBody && request.getMethod() == HTTPMethod.GET) {
+                    JsonObject requestBodyJson = requestBody.generateJson();
+                    byte[] bodyBytes = encoders.get(request.getMethod()).encode(requestBodyJson);
+
+                    String queryString = new String(bodyBytes, StandardCharsets.UTF_8);
+                    requestUri = new URIBuilder(requestUri).setCustomQuery(queryString).build();
+                }
+
+                HttpURLConnection connection = (HttpURLConnection) requestUri.toURL().openConnection();
+                connection.setInstanceFollowRedirects(false);
+                connection.setRequestMethod(request.getMethod().getValue());
+                connection.setRequestProperty("Content-Type", "application/json");
+                connection.setRequestProperty("Accept", "application/json");
+
+                if(request instanceof IHTTPBody requestBody && request.getMethod() != HTTPMethod.GET) {
+                    JsonObject requestBodyJson = requestBody.generateJson();
+                    byte[] bodyBytes = encoders.get(request.getMethod()).encode(requestBodyJson);
+
+                    connection.setDoOutput(true);
+                    OutputStream outputStream = connection.getOutputStream();
+                    outputStream.write(bodyBytes);
+                    outputStream.flush();
+                    outputStream.close();
+                }
+
+                int statusCode = connection.getResponseCode();
+                if(statusCode >= 400 && statusCode <= 599)
+                    return RequestResult.fromFailure(statusCode, connection.getErrorStream());
+
+                InputStream responseStream;
+                try {
+                    responseStream = connection.getInputStream();
+                } catch(IOException e) {
+                    return RequestResult.fromFailure(statusCode, connection.getErrorStream());
+                }
+
+                return RequestResult.fromSuccess(statusCode, responseStream);
+            } catch (IOException | URISyntaxException e) {
+                e.printStackTrace();
+                failedConnectionHandler.run();
+                return RequestResult.fromFailure(500, null);
+            }
+        }, SINGLE_THREAD_EXECUTOR);
     }
 
     public HTTPProtocol getProtocol() {

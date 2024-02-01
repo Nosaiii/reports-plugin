@@ -47,10 +47,11 @@ public class ChatPromptArgument {
     public String getConditionMessage() {
         String message = condition.getMessage();
 
-        ChatPromptPlaceholder placeholder = getPlaceholder();
-        String replacementKey = "%" + placeholder.getKey() + "%";
-        String transformedMessage = placeholder.transform(value);
-        message = message.replace(replacementKey, transformedMessage);
+        if(placeholder != null) {
+            String replacementKey = "%" + placeholder.getKey() + "%";
+            String transformedMessage = placeholder.transform(value);
+            message = message.replace(replacementKey, transformedMessage);
+        }
 
         return message;
     }
