@@ -27,7 +27,7 @@ public class ResolveReportItem extends WindowItem {
 
         setOnClickListener(ClickType.LEFT, (item, player) -> {
             reportService.resolve(player, id, resolve, () -> {
-                this.resolve = !resolve;
+                this.resolve = !this.resolve;
                 notifyUpdate(player);
             });
         });
