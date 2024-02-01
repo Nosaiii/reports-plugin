@@ -8,6 +8,11 @@ import com.orangecheese.reports.core.http.request.chathistory.ChatHistoryFetchRe
 import com.orangecheese.reports.core.http.response.ChatHistoryEntry;
 import com.orangecheese.reports.core.io.ContainerCache;
 import com.orangecheese.reports.utility.PlayerUtility;
+import net.md_5.bungee.api.chat.ClickEvent;
+import net.md_5.bungee.api.chat.ComponentBuilder;
+import net.md_5.bungee.api.chat.HoverEvent;
+import net.md_5.bungee.api.chat.TextComponent;
+import net.md_5.bungee.api.chat.hover.content.Text;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.profile.PlayerProfile;
@@ -60,6 +65,7 @@ public class ChatHistoryCommand implements ICommandArgument {
 
             String targetName = finalTargetProfile.getName();
             String pageNumbers = "" + ChatColor.RED + currentPage + ChatColor.GRAY + "/" + ChatColor.RED + maxPages;
+            player.sendMessage("");
             player.sendMessage(ChatColor.GRAY + "Chat history of '" + ChatColor.RED + targetName + ChatColor.GRAY + "' (" + pageNumbers + ChatColor.GRAY + "):");
 
             if(historyEntries.length > 0) {
@@ -77,6 +83,26 @@ public class ChatHistoryCommand implements ICommandArgument {
             } else {
                 player.sendMessage(ChatColor.GRAY + "No entries.");
             }
+
+            TextComponent previousPageComponent = new TextComponent("[Previous page]");
+            TextComponent buttonSpacingComponent = new TextComponent(" ");
+            TextComponent nextPageComponent = new TextComponent("[Next page]");
+
+            String baseCommandString = "/reports chathistory " + finalTargetProfile.getUniqueId();
+            int previousPage = currentPage - 1;
+            int nextPage = currentPage + 1;
+
+            previousPageComponent.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, baseCommandString + " " + previousPage));
+            previousPageComponent.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text("← Go to the previous page")));
+            nextPageComponent.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, baseCommandString + " " + nextPage));
+            nextPageComponent.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text("Go to the next page →")));
+
+            previousPageComponent.setColor(net.md_5.bungee.api.ChatColor.RED);
+            nextPageComponent.setColor(net.md_5.bungee.api.ChatColor.RED);
+
+            player.spigot().sendMessage(previousPageComponent, buttonSpacingComponent, nextPageComponent);
+
+            player.sendMessage("");
         });
 
         apiManager.makeRequest(fetchRequest);
