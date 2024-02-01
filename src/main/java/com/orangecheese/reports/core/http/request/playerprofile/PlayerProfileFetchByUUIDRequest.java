@@ -1,6 +1,7 @@
 package com.orangecheese.reports.core.http.request.playerprofile;
 
 import com.google.gson.JsonObject;
+import com.orangecheese.reports.ReportsPlugin;
 import com.orangecheese.reports.core.http.request.HTTPMethod;
 import com.orangecheese.reports.core.http.request.HTTPRequestWithResponse;
 import com.orangecheese.reports.core.http.request.IHTTPBody;
@@ -13,6 +14,7 @@ import org.bukkit.profile.PlayerProfile;
 
 import java.util.UUID;
 import java.util.function.Consumer;
+import java.util.logging.Level;
 
 public class PlayerProfileFetchByUUIDRequest extends HTTPRequestWithResponse<PlayerProfile, MessageResponse> implements IHTTPBody {
     private final UUID uuid;
@@ -48,7 +50,14 @@ public class PlayerProfileFetchByUUIDRequest extends HTTPRequestWithResponse<Pla
 
     @Override
     public PlayerProfile parseResponse(JsonObject json) {
-        UUID uuid = UUID.fromString(PlayerUtility.uuidToDashedUuid(json.get("uuid").getAsString()));
+        UUID uuid = null;
+        try {
+            uuid = UUID.fromString(PlayerUtility.uuidToDashedUuid(json.get("uuid").getAsString()));
+        } catch(IllegalArgumentException e) {
+            ReportsPlugin.getInstance().getLogger().log(Level.SEVERE, "Unable to parse uuid. Please try again later.");
+            e.printStackTrace();
+        }
+
         String username = json.get("username").getAsString();
         return Bukkit.getServer().createPlayerProfile(uuid, username);
     }
