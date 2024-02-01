@@ -37,8 +37,13 @@ public class PlayerReportItem extends ReportItem<PlayerReportAttributes> {
     public ArrayList<WindowItem> buildAdditionalOptions(Window context) {
         ArrayList<WindowItem> options = new ArrayList<>();
 
-        TeleportToPlayerItem teleportToReporterItem = new TeleportToPlayerItem(context, reportData.getAttributes().getPlayerUuid(), "Teleport to reported player");
+        UUID playerUuid = reportData.getAttributes().getPlayerUuid();
+
+        TeleportToPlayerItem teleportToReporterItem = new TeleportToPlayerItem(context, playerUuid, "Teleport to reported player");
         options.add(teleportToReporterItem);
+
+        ReadPlayerChatHistoryItem chatHistoryItem = new ReadPlayerChatHistoryItem(context, playerUuid);
+        options.add(chatHistoryItem);
 
         return options;
     }
