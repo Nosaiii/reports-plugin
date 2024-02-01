@@ -1,8 +1,9 @@
 package com.orangecheese.reports.core.gui.item;
 
+import com.orangecheese.reports.binding.ServiceContainer;
 import com.orangecheese.reports.core.gui.item.abstraction.WindowItem;
 import com.orangecheese.reports.core.gui.window.abstraction.Window;
-import com.orangecheese.reports.utility.PlayerUtility;
+import com.orangecheese.reports.service.PlayerProfileService;
 import org.bukkit.*;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.ClickType;
@@ -15,13 +16,20 @@ import java.util.List;
 import java.util.UUID;
 
 public class TeleportToPlayerItem extends WindowItem {
-    private final PlayerProfile playerProfile;
+    private PlayerProfile playerProfile;
 
     private final String itemLabel;
 
     public TeleportToPlayerItem(Window context, UUID playerUuid, String itemLabel) {
         super(context);
-        this.playerProfile = PlayerUtility.getProfile(playerUuid);
+
+        PlayerProfileService playerProfileService = ServiceContainer.get(PlayerProfileService.class);
+        Player contextPlayer = context.getPlayer();
+        playerProfileService.get(contextPlayer, playerUuid, profile -> {
+            playerProfile = profile;
+            notifyUpdate(contextPlayer);
+        });
+
         this.itemLabel = itemLabel;
 
         OfflinePlayer offlineReporter = Bukkit.getServer().getOfflinePlayer(playerUuid);
@@ -46,8 +54,12 @@ public class TeleportToPlayerItem extends WindowItem {
         if(meta != null) {
             meta.setDisplayName(ChatColor.GOLD + itemLabel);
 
+            String playerName = "(Fetching...)";
+            if(playerProfile != null)
+                playerName = playerProfile.getName();
+
             List<String> lore = new ArrayList<>();
-            lore.add(ChatColor.DARK_GRAY + "Teleport yourself to " + playerProfile.getName() + ".");
+            lore.add(ChatColor.DARK_GRAY + "Teleport yourself to " + playerName + ".");
             meta.setLore(lore);
         }
 

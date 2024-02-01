@@ -11,7 +11,7 @@ import java.util.ArrayList;
 public class BugReportItem extends ReportItem<BugReportAttributes> {
     public BugReportItem(Window context, ReportData<BugReportAttributes> reportData) {
         super(context, reportData);
-        addAdditionalArgument("Steps to reproduce", reportData.getAttributes().getStepsToReproduce());
+        setAdditionalArgument("Steps to reproduce", reportData.getAttributes().getStepsToReproduce());
     }
 
     @Override

@@ -1,14 +1,14 @@
 package com.orangecheese.reports.core.gui.item;
 
+import com.orangecheese.reports.binding.ServiceContainer;
 import com.orangecheese.reports.core.gui.item.abstraction.ReportItem;
 import com.orangecheese.reports.core.gui.item.abstraction.WindowItem;
 import com.orangecheese.reports.core.gui.window.abstraction.Window;
 import com.orangecheese.reports.core.http.response.PlayerReportAttributes;
 import com.orangecheese.reports.core.http.response.ReportData;
-import com.orangecheese.reports.utility.PlayerUtility;
+import com.orangecheese.reports.service.PlayerProfileService;
 import org.bukkit.Bukkit;
-import org.bukkit.OfflinePlayer;
-import org.bukkit.profile.PlayerProfile;
+import org.bukkit.entity.Player;
 
 import java.util.ArrayList;
 import java.util.Objects;
@@ -20,17 +20,19 @@ public class PlayerReportItem extends ReportItem<PlayerReportAttributes> {
 
         UUID playerUuid = reportData.getAttributes().getPlayerUuid();
 
-        OfflinePlayer cachedOfflinePlayer = Bukkit.getServer().getOfflinePlayer(playerUuid);
-        PlayerProfile profile;
-        if(cachedOfflinePlayer.getName() != null)
-            profile = cachedOfflinePlayer.getPlayerProfile();
-        else
-            profile = PlayerUtility.getProfile(playerUuid);
+        PlayerProfileService playerProfileService = ServiceContainer.get(PlayerProfileService.class);
+        Player contextPlayer = context.getPlayer();
+        playerProfileService.get(contextPlayer, playerUuid, profile -> {
+            setAdditionalArgument("Reported player", profile.getName());
 
-        addAdditionalArgument("Reported player", profile.getName());
+            String status = Bukkit.getServer().getOfflinePlayer(Objects.requireNonNull(profile.getUniqueId())).isOnline() ? "ONLINE" : "OFFLINE";
+            setAdditionalArgument("Status", status);
 
-        String status = Bukkit.getServer().getOfflinePlayer(Objects.requireNonNull(profile.getUniqueId())).isOnline() ? "ONLINE" : "OFFLINE";
-        addAdditionalArgument("Status", status);
+            notifyUpdate(contextPlayer);
+        });
+
+        setAdditionalArgument("Reported player", "(Fetching...)");
+        setAdditionalArgument("Status", "(Fetching...)");
     }
 
     @Override
