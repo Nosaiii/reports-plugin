@@ -5,7 +5,7 @@ import org.bukkit.entity.Player;
 
 public class CreateSuggestionReportRequest extends CreateReportRequest {
     public CreateSuggestionReportRequest(String accessToken, Player player, String message, boolean anonymous, Runnable onSuccess) {
-        super("create-suggestion-report", accessToken, player, message, anonymous, onSuccess);
+        super("create-suggestion-report", accessToken, player, message, anonymous,  onSuccess);
     }
 
     @Override

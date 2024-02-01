@@ -57,7 +57,8 @@ public abstract class WindowItem {
         return initialItemStack;
     }
 
-    public void notifyUpdate() {
+    public void notifyUpdate(Player player) {
+        cachedItemStack = buildInitial(player);
         context.notifyUpdate(this);
     }
 
