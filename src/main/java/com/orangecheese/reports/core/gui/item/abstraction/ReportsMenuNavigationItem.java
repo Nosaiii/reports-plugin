@@ -6,12 +6,8 @@ import org.apache.commons.lang.StringUtils;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
-import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.ItemMeta;
 
-import java.util.List;
-
-public class ReportsMenuNavigationItem extends MenuNavigationItem implements IAutoUpdatingWindowItem {
+public class ReportsMenuNavigationItem extends MenuNavigationItem {
     private int reports;
 
     public ReportsMenuNavigationItem(Window context, Window to, Material material, String label) {
@@ -26,25 +22,13 @@ public class ReportsMenuNavigationItem extends MenuNavigationItem implements IAu
         reports = -1;
     }
 
-    public void setReports(int reports) {
+    public void setReports(Player player, int reports) {
         this.reports = reports;
+        setAdditionalLore(ChatColor.DARK_GRAY + "» " + ChatColor.GOLD + reports + ChatColor.DARK_GRAY + " report(s) «");
+        notifyUpdate(player);
     }
 
-    @Override
-    public ItemStack update(Player player) {
-        ItemMeta meta = cachedItemStack.getItemMeta();
-
-        if(meta != null && meta.hasLore() && meta.getLore() != null) {
-            if(reports == -1)
-                setAdditionalLore(ChatColor.DARK_GRAY + "Fetching...");
-            else
-                setAdditionalLore(ChatColor.DARK_GRAY + "» " + ChatColor.GOLD + reports + ChatColor.DARK_GRAY + " report(s) «");
-            List<String> lore = getLore(player);
-            meta.setLore(lore);
-        }
-
-        cachedItemStack.setItemMeta(meta);
-
-        return cachedItemStack;
+    public int getReports() {
+        return reports;
     }
 }

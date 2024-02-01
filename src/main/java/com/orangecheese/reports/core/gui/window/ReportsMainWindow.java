@@ -26,9 +26,13 @@ public class ReportsMainWindow extends Window {
     public void onInitialize(int page) {
         MenuConfig menuConfig = ReportsPlugin.getInstance().getReportsConfig().getMenu();
 
-        ReportsMenuNavigationItem bugReports = new ReportsMenuNavigationItem(this, null, menuConfig.getMainIcon("bugs"), "Bug reports");
-        ReportsMenuNavigationItem playerReports = new ReportsMenuNavigationItem(this, null, menuConfig.getMainIcon("players"), "Player reports");
-        ReportsMenuNavigationItem suggestionReports = new ReportsMenuNavigationItem(this, null, menuConfig.getMainIcon("suggestions"), "Suggestions");
+        BugReportsWindow bugReportsWindow = new BugReportsWindow(getPlayer(), getHistory());
+        PlayerReportsWindow playerReportsWindow = new PlayerReportsWindow(getPlayer(), getHistory());
+        SuggestionReportsWindow suggestionReportsWindow = new SuggestionReportsWindow(getPlayer(), getHistory());
+
+        ReportsMenuNavigationItem bugReports = new ReportsMenuNavigationItem(this, bugReportsWindow, menuConfig.getMainIcon("bugs"), "Bug reports");
+        ReportsMenuNavigationItem playerReports = new ReportsMenuNavigationItem(this, playerReportsWindow, menuConfig.getMainIcon("players"), "Player reports");
+        ReportsMenuNavigationItem suggestionReports = new ReportsMenuNavigationItem(this, suggestionReportsWindow, menuConfig.getMainIcon("suggestions"), "Suggestions");
 
         addItem(bugReports);
         addItem(playerReports);
@@ -36,17 +40,9 @@ public class ReportsMainWindow extends Window {
 
         ReadReportsMetaRequest reportsMetaRequest = new ReadReportsMetaRequest(
                 response -> {
-                    BugReportsWindow bugReportsWindow = new BugReportsWindow(getPlayer(), getHistory());
-                    PlayerReportsWindow playerReportsWindow = new PlayerReportsWindow(getPlayer(), getHistory());
-                    SuggestionReportsWindow suggestionReportsWindow = new SuggestionReportsWindow(getPlayer(), getHistory());
-
-                    bugReports.setTo(bugReportsWindow);
-                    playerReports.setTo(playerReportsWindow);
-                    suggestionReports.setTo(suggestionReportsWindow);
-
-                    bugReports.setReports(response.getBugReports());
-                    playerReports.setReports(response.getPlayerReports());
-                    suggestionReports.setReports(response.getSuggestionReports());
+                    bugReports.setReports(getPlayer(), response.getBugReports());
+                    playerReports.setReports(getPlayer(), response.getPlayerReports());
+                    suggestionReports.setReports(getPlayer(), response.getSuggestionReports());
                     },
                 response -> {
                     getPlayer().sendMessage(ChatColor.RED + "Something went wrong while trying to open the reports menu: " + response.getMessage());

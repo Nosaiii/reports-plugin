@@ -15,7 +15,7 @@ import java.util.Arrays;
 import java.util.List;
 
 public class MenuNavigationItem extends WindowItem {
-    private Window to;
+    private final Window to;
 
     private final Material material;
 
@@ -43,10 +43,7 @@ public class MenuNavigationItem extends WindowItem {
         this.additionalLore = additionalLore;
 
         setRequiredPermissions(requiredPermission);
-        reinitializeClickListener();
-    }
 
-    private void reinitializeClickListener() {
         setOnClickListener(ClickType.LEFT, (item, player) -> {
             if(to == null)
                 return;
@@ -95,11 +92,6 @@ public class MenuNavigationItem extends WindowItem {
         }
 
         return lore;
-    }
-
-    public void setTo(Window to) {
-        this.to = to;
-        reinitializeClickListener();
     }
 
     public void setDescription(String description) {

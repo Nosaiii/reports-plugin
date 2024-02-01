@@ -7,19 +7,16 @@ import com.orangecheese.reports.core.gui.data.WindowHistoryEntry;
 import com.orangecheese.reports.core.gui.item.FillerItem;
 import com.orangecheese.reports.core.gui.item.PaginationButton;
 import com.orangecheese.reports.core.gui.item.WindowFilterItem;
-import com.orangecheese.reports.core.gui.item.abstraction.IAutoUpdatingWindowItem;
 import com.orangecheese.reports.core.gui.item.abstraction.WindowItem;
 import com.orangecheese.reports.core.gui.layout.IWindowLayout;
 import com.orangecheese.reports.event.WindowCloseEvent;
 import com.orangecheese.reports.event.WindowItemClickEvent;
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.scheduler.BukkitTask;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -42,8 +39,6 @@ public abstract class Window {
     private HashMap<Integer, WindowItem> slottedItems;
 
     private Inventory inventory;
-
-    private BukkitTask windowUpdateTask;
 
     private Listener windowCloseEvent;
 
@@ -92,14 +87,6 @@ public abstract class Window {
 
         windowCloseEvent = new WindowCloseEvent(this);
         Bukkit.getServer().getPluginManager().registerEvents(windowCloseEvent, plugin);
-
-        int TICK_PERIOD = 10;
-        windowUpdateTask = Bukkit.getScheduler().runTaskTimer(
-                plugin,
-                this::tick,
-                0L,
-                TICK_PERIOD
-        );
     }
 
     public void reinitialize() {
@@ -118,11 +105,6 @@ public abstract class Window {
     }
 
     public void dispose() {
-        if(windowUpdateTask != null) {
-            windowUpdateTask.cancel();
-            windowUpdateTask = null;
-        }
-
         HandlerList.unregisterAll(windowCloseEvent);
         HandlerList.unregisterAll(itemClickEvent);
     }
@@ -136,6 +118,9 @@ public abstract class Window {
     }
 
     public void notifyUpdate(WindowItem item) {
+        if(slottedItems == null || slottedItems.isEmpty())
+            return;
+
         int[] slots = slottedItems.
                 entrySet()
                 .stream()
@@ -213,22 +198,6 @@ public abstract class Window {
 
                 slottedItems.put(slot, filterItems.get(i));
             }
-        }
-    }
-
-    private void tick() {
-        slottedItems = layout.map(getItems());
-
-        for(Map.Entry<Integer, WindowItem> itemEntry : slottedItems.entrySet()) {
-            int slot = itemEntry.getKey();
-            WindowItem item = itemEntry.getValue();
-
-            if(item instanceof IAutoUpdatingWindowItem updatingItem) {
-                inventory.setItem(slot, updatingItem.update(player));
-                continue;
-            }
-
-            inventory.setItem(slot, item.getItemStack());
         }
     }
 
