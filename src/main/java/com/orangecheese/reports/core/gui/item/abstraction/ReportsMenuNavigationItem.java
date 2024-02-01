@@ -18,7 +18,7 @@ public class ReportsMenuNavigationItem extends MenuNavigationItem {
                 material,
                 label,
                 "A collection of " + StringUtils.uncapitalize(label) + ".",
-                "Fetching...");
+                ChatColor.DARK_GRAY + "Fetching...");
         reports = -1;
     }
 
