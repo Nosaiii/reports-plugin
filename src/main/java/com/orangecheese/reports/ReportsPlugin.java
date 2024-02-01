@@ -7,6 +7,8 @@ import com.orangecheese.reports.config.ReportsConfig;
 import com.orangecheese.reports.core.http.APIManager;
 import com.orangecheese.reports.core.io.ContainerCache;
 import com.orangecheese.reports.event.ChatHistoryEvent;
+import com.orangecheese.reports.event.PlayerProfileRegistrationEvent;
+import com.orangecheese.reports.service.PlayerProfileService;
 import com.orangecheese.reports.service.ReportService;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -31,12 +33,14 @@ public class ReportsPlugin extends JavaPlugin {
 
         ServiceContainer.bind(APIManager.class);
         ServiceContainer.bind(ContainerCache.class);
+        ServiceContainer.bind(PlayerProfileService.class);
         ServiceContainer.bind(ReportService.class);
 
         if(!initializeAPI())
             return;
 
         registerEvents(new ChatHistoryEvent());
+        registerEvents(new PlayerProfileRegistrationEvent());
 
         registerCommand("reports", new ReportsCommand());
         registerCommand("report", new ReportCommand());

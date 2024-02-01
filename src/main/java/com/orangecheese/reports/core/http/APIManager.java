@@ -27,6 +27,8 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Queue;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
 import java.util.function.Consumer;
 
 public class APIManager {
@@ -47,6 +49,8 @@ public class APIManager {
     private final Queue<QueuedHTTPRequest> requestQueue;
 
     private QueuedHTTPRequest currentlyProcessedRequest;
+
+    private static final Executor SINGLE_THREAD_EXECUTOR = Executors.newSingleThreadExecutor();
 
     @ServiceConstructor
     public APIManager() {
@@ -206,7 +210,7 @@ public class APIManager {
                 failedConnectionHandler.run();
                 return RequestResult.fromFailure(500, null);
             }
-        });
+        }, SINGLE_THREAD_EXECUTOR);
     }
 
     public HTTPProtocol getProtocol() {

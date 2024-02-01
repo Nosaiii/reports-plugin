@@ -1,8 +1,10 @@
 package com.orangecheese.reports.core.gui.item.abstraction;
 
+import com.orangecheese.reports.binding.ServiceContainer;
 import com.orangecheese.reports.core.gui.window.ReportActionWindow;
 import com.orangecheese.reports.core.gui.window.abstraction.Window;
 import com.orangecheese.reports.core.http.response.ReportData;
+import com.orangecheese.reports.service.PlayerProfileService;
 import com.orangecheese.reports.utility.PlayerUtility;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -21,6 +23,8 @@ import java.util.*;
 public abstract class ReportItem<T> extends WindowItem {
     protected final ReportData<T> reportData;
 
+    private PlayerProfile reporterProfile;
+
     private final Map<String, String> additionalAttributes;
 
     private static final int LINE_LENGTH = 45;
@@ -29,8 +33,18 @@ public abstract class ReportItem<T> extends WindowItem {
         super(context);
         this.reportData = reportData;
 
+        PlayerProfileService playerProfileService = ServiceContainer.get(PlayerProfileService.class);
+        Player contextPlayer = context.getPlayer();
+        playerProfileService.get(
+                contextPlayer,
+                reportData.getReporterUuid(),
+                profile -> {
+                    reporterProfile = profile;
+                    notifyUpdate(contextPlayer);
+                });
+
         additionalAttributes = new LinkedHashMap<>();
-        addAdditionalArgument("Message", reportData.getMessage());
+        setAdditionalArgument("Message", reportData.getMessage());
 
         setOnClickListener(ClickType.LEFT, (item, player) -> {
             ReportActionWindow<T> actionWindow = new ReportActionWindow<>(player, context.getHistory(), reportData);
@@ -51,8 +65,7 @@ public abstract class ReportItem<T> extends WindowItem {
 
         if(meta != null) {
             String reportedByLineValue = ChatColor.ITALIC + "Anonymous";
-            if(reportData.getReporterUuid() != null) {
-                PlayerProfile reporterProfile = PlayerUtility.getProfile(reportData.getReporterUuid());
+            if(reporterProfile != null) {
                 meta.setOwnerProfile(reporterProfile);
 
                 OfflinePlayer reporterOfflinePlayer = Bukkit.getServer().getOfflinePlayer(reportData.getReporterUuid());
@@ -102,7 +115,7 @@ public abstract class ReportItem<T> extends WindowItem {
         return item;
     }
 
-    protected void addAdditionalArgument(String key, String value) {
+    protected void setAdditionalArgument(String key, String value) {
         additionalAttributes.put(key, value);
     }
 }

@@ -6,14 +6,12 @@ import com.orangecheese.reports.command.ICommandArgument;
 import com.orangecheese.reports.core.http.APIManager;
 import com.orangecheese.reports.core.http.request.report.CreatePlayerReportRequest;
 import com.orangecheese.reports.core.io.ContainerCache;
+import com.orangecheese.reports.service.PlayerProfileService;
 import com.orangecheese.reports.service.chatprompt.ChatPrompt;
 import com.orangecheese.reports.service.chatprompt.ChatPromptArgument;
 import com.orangecheese.reports.service.chatprompt.ChatPromptCondition;
-import com.orangecheese.reports.service.chatprompt.ChatPromptPlaceholder;
-import com.orangecheese.reports.utility.PlayerUtility;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
-import org.bukkit.profile.PlayerProfile;
 
 import java.util.UUID;
 
@@ -22,9 +20,12 @@ public class ReportPlayerCommandArgument implements ICommandArgument {
 
     private final APIManager apiManager;
 
+    private final PlayerProfileService playerProfileService;
+
     public ReportPlayerCommandArgument() {
-        this.containerCache = ServiceContainer.get(ContainerCache.class);
-        this.apiManager = ServiceContainer.get(APIManager.class);
+        containerCache = ServiceContainer.get(ContainerCache.class);
+        apiManager = ServiceContainer.get(APIManager.class);
+        playerProfileService = ServiceContainer.get(PlayerProfileService.class);
     }
 
     @Override
@@ -34,40 +35,31 @@ public class ReportPlayerCommandArgument implements ICommandArgument {
             String message = promptArguments[1];
             boolean anonymous = promptArguments[2].equalsIgnoreCase("yes");
 
-            PlayerProfile playerProfile = PlayerUtility.getProfile(playerName);
-            if(playerProfile.getUniqueId() == null)
-                throw new RuntimeException("player is null: " + playerName);
-            UUID playerUuid = playerProfile.getUniqueId();
+            playerProfileService.getWithCatch(
+                    playerName,
+                    profile -> {
+                        UUID playerUuid = profile.getUniqueId();
 
-            String accessToken = containerCache.getAccessToken();
+                        String accessToken = containerCache.getAccessToken();
 
-            CreatePlayerReportRequest reportRequest = new CreatePlayerReportRequest(
-                    accessToken,
-                    player,
-                    message,
-                    anonymous,
-                    playerUuid,
-                    () -> player.sendMessage(ChatColor.GREEN + "A new player report has been submitted!"));
+                        CreatePlayerReportRequest reportRequest = new CreatePlayerReportRequest(
+                                accessToken,
+                                player,
+                                message,
+                                anonymous,
+                                playerUuid,
+                                () -> player.sendMessage(ChatColor.GREEN + "A new player report has been submitted!"));
 
-            apiManager.makeRequest(reportRequest);
+                        apiManager.makeRequest(reportRequest);
+                    },
+                    response -> {
+                        player.sendMessage(ChatColor.RED + "Something went wrong: " + response.getMessage() + ".");
+                        player.sendMessage(ChatColor.RED + "Please try again in a minute.");
+                    });
         });
 
         ChatPromptArgument playerArgument = new ChatPromptArgument("What player would you like to report?");
-        playerArgument.setPlaceholder(new ChatPromptPlaceholder("player", name -> {
-            PlayerProfile profile = PlayerUtility.getProfile(name);
-            if(profile.getName() == null)
-                return name;
-            return profile.getName();
-        }));
-        playerArgument.setCondition(new ChatPromptCondition(
-                name -> {
-                    PlayerProfile profile = PlayerUtility.getProfile(name);
-                    return profile.getUniqueId() != null;
-                },
-            "The player '%player%' is invalid! Please try again."));
-
-        ChatPromptArgument messageArgument = new ChatPromptArgument("What do you want to report %player% about?");
-
+        ChatPromptArgument messageArgument = new ChatPromptArgument("What do you want to report the player about?");
         ChatPromptArgument anonymousChatPromptArgument = new ChatPromptArgument("Would you like to report anonymously? (Yes/No)");
         anonymousChatPromptArgument.setCondition(new ChatPromptCondition(
                 argument -> argument.matches("(?i)^(yes|no)$"),
@@ -82,7 +74,7 @@ public class ReportPlayerCommandArgument implements ICommandArgument {
 
     @Override
     public String getBaseCommandArgument() {
-        return "bug";
+        return "player";
     }
 
     @Override
