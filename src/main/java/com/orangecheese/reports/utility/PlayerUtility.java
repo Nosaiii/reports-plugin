@@ -43,24 +43,24 @@ public final class PlayerUtility {
     public static PlayerProfile getProfile(UUID uuid) {
         URIBuilder uriBuilder = new URIBuilder()
                 .setScheme("https")
-                .setHost("api.mojang.com")
+                .setHost("sessionserver.mojang.com")
                 .setPathSegments(Arrays.asList(
-                        "user",
+                        "session",
+                        "minecraft",
                         "profile",
                         uuid.toString()
                 ));
 
-        JsonObject jsonResponse;
         try {
-            jsonResponse = readFromGetRequest(uriBuilder.build());
+            JsonObject jsonResponse = readFromGetRequest(uriBuilder.build());
+
+            String jsonName = jsonResponse.get("name").getAsString();
+            String jsonId = jsonResponse.get("id").getAsString();
+
+            return Bukkit.getServer().createPlayerProfile(UUID.fromString(uuidToDashedUuid(jsonId)), jsonName);
         } catch (URISyntaxException e) {
             throw new RuntimeException(e);
         }
-
-        String jsonName = jsonResponse.get("name").getAsString();
-        String jsonId = jsonResponse.get("id").getAsString();
-
-        return Bukkit.getServer().createPlayerProfile(UUID.fromString(uuidToDashedUuid(jsonId)), jsonName);
     }
 
     public static String uuidToDashedUuid(String uuid) {
@@ -76,10 +76,7 @@ public final class PlayerUtility {
             connection.setRequestProperty("Accept", "application/json");
 
             int responseCode = connection.getResponseCode();
-
-            if(responseCode == 404)
-                return null;
-            else if(connection.getResponseCode() != 200)
+            if(responseCode != 200)
                 throw new IOException("request returned " + connection.getResponseCode());
 
             BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
