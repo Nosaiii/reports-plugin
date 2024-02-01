@@ -19,7 +19,7 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 
 public abstract class ReportItem<T> extends WindowItem {
-    private final ReportData<T> reportData;
+    protected final ReportData<T> reportData;
 
     private final Map<String, String> additionalAttributes;
 
@@ -33,10 +33,16 @@ public abstract class ReportItem<T> extends WindowItem {
         addAdditionalArgument("Message", reportData.getMessage());
 
         setOnClickListener(ClickType.LEFT, (item, player) -> {
-            ReportActionWindow<T> actionWindow = new ReportActionWindow<>(player, context.getHistory(), reportData, null);
+            ReportActionWindow<T> actionWindow = new ReportActionWindow<>(player, context.getHistory(), reportData);
+
+            for(WindowItem additionalOption : buildAdditionalOptions(actionWindow))
+                actionWindow.addAdditionalOption(additionalOption);
+
             actionWindow.open(1);
         });
     }
+
+    public abstract ArrayList<WindowItem> buildAdditionalOptions(Window context);
 
     @Override
     protected ItemStack renderInitial(Player player) {
