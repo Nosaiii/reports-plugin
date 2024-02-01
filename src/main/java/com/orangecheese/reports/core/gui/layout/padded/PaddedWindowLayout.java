@@ -30,7 +30,11 @@ public class PaddedWindowLayout implements IWindowLayout {
             int startIndex = 4;
             if(itemsForRow.length > 1) {
                 int centerIndex = startIndex;
-                int subtractionOffset = (int) (Math.floor((itemsForRow.length + 1) / 2.0d));
+
+                double halfSize = (itemsForRow.length + 1) / 2.0d;
+                if(itemsForRow.length % 2 == 0 && (int) Math.ceil(halfSize) % 2 == 0)
+                    halfSize -= 1;
+                int subtractionOffset = (int) (Math.ceil(halfSize));
                 startIndex = centerIndex - subtractionOffset;
             }
 
