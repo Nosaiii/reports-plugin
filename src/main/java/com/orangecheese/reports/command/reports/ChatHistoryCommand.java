@@ -1,5 +1,6 @@
 package com.orangecheese.reports.command.reports;
 
+import com.orangecheese.reports.ReportsPlugin;
 import com.orangecheese.reports.binding.ServiceContainer;
 import com.orangecheese.reports.command.BaseCommand;
 import com.orangecheese.reports.command.ICommandArgument;
@@ -8,6 +9,7 @@ import com.orangecheese.reports.core.http.request.chathistory.ChatHistoryFetchRe
 import com.orangecheese.reports.core.http.response.ChatHistoryEntry;
 import com.orangecheese.reports.core.io.ContainerCache;
 import com.orangecheese.reports.service.PlayerProfileService;
+import com.orangecheese.reports.utility.DateUtility;
 import net.md_5.bungee.api.chat.ClickEvent;
 import net.md_5.bungee.api.chat.HoverEvent;
 import net.md_5.bungee.api.chat.TextComponent;
@@ -17,6 +19,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.profile.PlayerProfile;
 
 import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
 import java.util.UUID;
 import java.util.function.Consumer;
 
@@ -62,7 +65,9 @@ public class ChatHistoryCommand implements ICommandArgument {
                 if(historyEntries.length > 0) {
                     for(ChatHistoryEntry chatHistoryEntry : historyEntries) {
                         SimpleDateFormat dateFormatter = new SimpleDateFormat("dd MMM yyyy HH:mm:ss");
-                        String formattedDateTime = dateFormatter.format(chatHistoryEntry.getCreatedAt());
+                        String timezone = ReportsPlugin.getInstance().getReportsConfig().getLocalization().getTimezone();
+                        LocalDateTime timezoneAwareDateTime = DateUtility.convertFromGMT(chatHistoryEntry.getCreatedAt(), timezone);
+                        String formattedDateTime = dateFormatter.format(timezoneAwareDateTime);
                         String message =
                                 ChatColor.GRAY + "[" +
                                         ChatColor.DARK_GRAY + formattedDateTime +

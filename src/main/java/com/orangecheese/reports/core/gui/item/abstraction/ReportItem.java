@@ -1,11 +1,12 @@
 package com.orangecheese.reports.core.gui.item.abstraction;
 
+import com.orangecheese.reports.ReportsPlugin;
 import com.orangecheese.reports.binding.ServiceContainer;
 import com.orangecheese.reports.core.gui.window.ReportActionWindow;
 import com.orangecheese.reports.core.gui.window.abstraction.Window;
 import com.orangecheese.reports.core.http.response.ReportData;
 import com.orangecheese.reports.service.PlayerProfileService;
-import com.orangecheese.reports.utility.PlayerUtility;
+import com.orangecheese.reports.utility.DateUtility;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -18,6 +19,7 @@ import org.bukkit.profile.PlayerProfile;
 import org.bukkit.util.ChatPaginator;
 
 import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
 import java.util.*;
 
 public abstract class ReportItem<T> extends WindowItem {
@@ -83,10 +85,14 @@ public abstract class ReportItem<T> extends WindowItem {
             String reportedByLine = ChatColor.DARK_GRAY + "Reported by " + reportedByLineValue;
             lore.add(reportedByLine);
 
+            String timezone = ReportsPlugin.getInstance().getReportsConfig().getLocalization().getTimezone();
+            LocalDateTime timezoneAwareDateTime = DateUtility.convertFromGMT(reportData.getCreatedAt(), timezone);
+
             SimpleDateFormat submissionDateFormat = new SimpleDateFormat("dd MMMM yyyy");
             SimpleDateFormat submissionTimeFormat = new SimpleDateFormat("HH:mm:ss");
-            String dateString = submissionDateFormat.format(reportData.getCreatedAt());
-            String timeString = submissionTimeFormat.format(reportData.getCreatedAt());
+
+            String dateString = submissionDateFormat.format(timezoneAwareDateTime);
+            String timeString = submissionTimeFormat.format(timezoneAwareDateTime);
             lore.add(ChatColor.DARK_GRAY + dateString + " at " + timeString);
 
             if(!additionalAttributes.isEmpty()) {

@@ -3,10 +3,9 @@ package com.orangecheese.reports.core.http.response;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
-import java.text.DateFormat;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.UUID;
 
 public class ReportData<T> {
@@ -20,9 +19,9 @@ public class ReportData<T> {
 
     private boolean resolved;
 
-    private final Date createdAt;
+    private final LocalDateTime createdAt;
 
-    private final Date updatedAt;
+    private final LocalDateTime updatedAt;
 
     private final T attributes;
 
@@ -32,8 +31,8 @@ public class ReportData<T> {
             UUID reporterUuid,
             String message,
             boolean resolved,
-            Date createdAt,
-            Date updatedAt,
+            LocalDateTime createdAt,
+            LocalDateTime updatedAt,
             T attributes) {
         this.id = id;
         this.containerId = containerId;
@@ -55,13 +54,12 @@ public class ReportData<T> {
         String message = json.get("message").getAsString();
         boolean resolved = json.get("resolved").getAsBoolean();
 
-        DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.S'Z'");
-        Date createdAt;
-        Date updatedAt;
+        DateTimeFormatter dateFormat = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.S'Z'");
+        LocalDateTime createdAt, updatedAt;
         try {
-            createdAt = dateFormat.parse(json.get("created_at").getAsString());
-            updatedAt = dateFormat.parse(json.get("updated_at").getAsString());
-        } catch (ParseException e) {
+            createdAt = LocalDateTime.parse(json.get("created_at").getAsString(), dateFormat);
+            updatedAt = LocalDateTime.parse(json.get("updated_at").getAsString(), dateFormat);
+        } catch (DateTimeParseException e) {
             throw new RuntimeException(e);
         }
 
@@ -92,11 +90,11 @@ public class ReportData<T> {
         return resolved;
     }
 
-    public Date getCreatedAt() {
+    public LocalDateTime getCreatedAt() {
         return createdAt;
     }
 
-    public Date getUpdatedAt() {
+    public LocalDateTime getUpdatedAt() {
         return updatedAt;
     }
 

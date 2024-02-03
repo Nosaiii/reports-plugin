@@ -10,11 +10,10 @@ import com.orangecheese.reports.core.http.request.IHTTPBody;
 import com.orangecheese.reports.core.http.response.ChatHistoryEntry;
 import com.orangecheese.reports.core.http.response.ChatHistoryResponse;
 import com.orangecheese.reports.utility.EmptyRecord;
-import org.bukkit.Bukkit;
 
-import java.text.DateFormat;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.logging.Level;
@@ -50,7 +49,7 @@ public class ChatHistoryFetchRequest extends HTTPRequestWithResponse<ChatHistory
 
         List<ChatHistoryEntry> chatHistory = new ArrayList<>();
 
-        DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.S'Z'");
+        DateTimeFormatter dateTimeFormat = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.S'Z'");
 
         while(chatHistoryIterator.hasNext()) {
             JsonElement chatHistoryElement = chatHistoryIterator.next();
@@ -61,11 +60,11 @@ public class ChatHistoryFetchRequest extends HTTPRequestWithResponse<ChatHistory
             UUID playerUuid = UUID.fromString(chatHistoryObject.get("player_uuid").getAsString());
             String message = chatHistoryObject.get("message").getAsString();
 
-            Date createdAt, updatedAt;
+            LocalDateTime createdAt, updatedAt;
             try {
-                createdAt = dateFormat.parse(chatHistoryObject.get("created_at").getAsString());
-                updatedAt = dateFormat.parse(chatHistoryObject.get("updated_at").getAsString());
-            } catch (ParseException e) {
+                createdAt = LocalDateTime.parse(chatHistoryObject.get("created_at").getAsString(), dateTimeFormat);
+                updatedAt = LocalDateTime.parse(chatHistoryObject.get("updated_at").getAsString(), dateTimeFormat);
+            } catch (DateTimeParseException e) {
                 throw new RuntimeException(e);
             }
 
