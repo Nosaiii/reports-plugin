@@ -63,8 +63,8 @@ public class ChatHistoryCommand implements ICommandArgument {
                 player.sendMessage("");
                 player.sendMessage(ChatColor.GRAY + "Chat history of '" + ChatColor.RED + targetName + ChatColor.GRAY + "' (" + pageNumbers + ChatColor.GRAY + "):");
 
-                if(historyEntries.length > 0) {
-                    for(ChatHistoryEntry chatHistoryEntry : historyEntries) {
+                if (historyEntries.length > 0) {
+                    for (ChatHistoryEntry chatHistoryEntry : historyEntries) {
                         DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("dd MMM yyyy HH:mm:ss");
                         String timezone = ReportsPlugin.getInstance().getReportsConfig().getLocalization().getTimezone();
                         LocalDateTime timezoneAwareDateTime = DateUtility.convertFromGMT(chatHistoryEntry.getCreatedAt(), timezone);
@@ -81,23 +81,33 @@ public class ChatHistoryCommand implements ICommandArgument {
                     player.sendMessage(ChatColor.GRAY + "No entries.");
                 }
 
-                TextComponent previousPageComponent = new TextComponent("[Previous page]");
-                TextComponent buttonSpacingComponent = new TextComponent(" ");
-                TextComponent nextPageComponent = new TextComponent("[Next page]");
-
                 String baseCommandString = "/reports chathistory " + finalTargetProfile.getUniqueId();
-                int previousPage = currentPage - 1;
-                int nextPage = currentPage + 1;
 
-                previousPageComponent.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, baseCommandString + " " + previousPage));
-                previousPageComponent.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text("← Go to the previous page")));
-                nextPageComponent.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, baseCommandString + " " + nextPage));
-                nextPageComponent.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text("Go to the next page →")));
+                boolean hasPrevious = currentPage > 1;
+                boolean hasNext = currentPage < maxPages;
 
-                previousPageComponent.setColor(net.md_5.bungee.api.ChatColor.RED);
-                nextPageComponent.setColor(net.md_5.bungee.api.ChatColor.RED);
+                TextComponent previousPageComponent = new TextComponent();
+                if (hasPrevious) {
+                    int previousPage = currentPage - 1;
+                    previousPageComponent = new TextComponent("[Previous page]");
+                    previousPageComponent.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, baseCommandString + " " + previousPage));
+                    previousPageComponent.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text("← Go to the previous page")));
+                    previousPageComponent.setColor(net.md_5.bungee.api.ChatColor.RED);
+                }
 
-                player.spigot().sendMessage(previousPageComponent, buttonSpacingComponent, nextPageComponent);
+                TextComponent nextPageComponent = new TextComponent();
+                if(hasNext) {
+                    int nextPage = currentPage + 1;
+                    nextPageComponent = new TextComponent("[Next page]");
+                    nextPageComponent.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, baseCommandString + " " + nextPage));
+                    nextPageComponent.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text("Go to the next page →")));
+                    nextPageComponent.setColor(net.md_5.bungee.api.ChatColor.RED);
+                }
+
+                if(hasPrevious || hasNext) {
+                    TextComponent buttonSpacingComponent = new TextComponent(hasPrevious ? " " : "");
+                    player.spigot().sendMessage(previousPageComponent, buttonSpacingComponent, nextPageComponent);
+                }
 
                 player.sendMessage("");
             });
