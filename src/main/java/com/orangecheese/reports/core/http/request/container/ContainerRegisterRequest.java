@@ -4,13 +4,13 @@ import com.google.gson.JsonObject;
 import com.orangecheese.reports.core.http.request.HTTPMethod;
 import com.orangecheese.reports.core.http.request.HTTPRequestWithResponse;
 import com.orangecheese.reports.core.http.request.IHTTPBody;
+import com.orangecheese.reports.core.http.response.ContainerAuthResponse;
 import com.orangecheese.reports.core.http.response.MessageResponse;
-import com.orangecheese.reports.utility.EmptyRecord;
 
 import java.util.UUID;
 import java.util.function.Consumer;
 
-public class ContainerRegisterRequest extends HTTPRequestWithResponse<EmptyRecord, MessageResponse> implements IHTTPBody {
+public class ContainerRegisterRequest extends HTTPRequestWithResponse<ContainerAuthResponse, MessageResponse> implements IHTTPBody {
     private final String identification;
 
     private final String keyPhrase;
@@ -21,17 +21,19 @@ public class ContainerRegisterRequest extends HTTPRequestWithResponse<EmptyRecor
             String identification,
             String keyPhrase,
             UUID ownerUuid,
-            Runnable onSuccess,
+            Consumer<ContainerAuthResponse> onSuccess,
             Consumer<MessageResponse> onFailure) {
-        super("container/register", HTTPMethod.POST, response -> onSuccess.run(), onFailure);
+        super("container/register", HTTPMethod.POST, onSuccess, onFailure);
         this.identification = identification;
         this.keyPhrase = keyPhrase;
         this.ownerUuid = ownerUuid;
     }
 
     @Override
-    public EmptyRecord parseResponse(JsonObject json) {
-        return new EmptyRecord();
+    public ContainerAuthResponse parseResponse(JsonObject json) {
+        String token = json.get("token").getAsString();
+        String expiresAtString = json.get("expires_at").getAsString();
+        return new ContainerAuthResponse(token, expiresAtString);
     }
 
     @Override
