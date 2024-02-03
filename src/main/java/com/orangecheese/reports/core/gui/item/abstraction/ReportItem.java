@@ -55,7 +55,7 @@ public abstract class ReportItem<T> extends WindowItem {
             for(WindowItem additionalOption : buildAdditionalOptions(actionWindow))
                 actionWindow.addAdditionalOption(additionalOption);
 
-            actionWindow.open(1);
+            actionWindow.open();
         });
     }
 

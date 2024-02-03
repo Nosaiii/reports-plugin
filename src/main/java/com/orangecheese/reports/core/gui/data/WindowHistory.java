@@ -1,5 +1,6 @@
 package com.orangecheese.reports.core.gui.data;
 
+import com.orangecheese.reports.core.gui.window.abstraction.Window;
 import org.bukkit.entity.Player;
 
 import java.util.Stack;
@@ -24,6 +25,10 @@ public class WindowHistory {
         }
 
         WindowHistoryEntry entry = stack.pop();
-        entry.getWindow().open(entry.getPage());
+        Window window = entry.getWindow();
+        int page = entry.getPage();
+
+        window.openAtPage(page);
+        window.getHistory().add(new WindowHistoryEntry(window, page));
     }
 }

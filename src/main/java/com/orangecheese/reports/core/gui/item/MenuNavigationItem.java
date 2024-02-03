@@ -54,7 +54,7 @@ public class MenuNavigationItem extends WindowItem {
                 return;
             }
 
-            to.open(1);
+            to.open();
         });
     }
 

@@ -51,6 +51,6 @@ public class PaginationButton {
     }
 
     public void navigate() {
-        window.setPage(pageGoal);
+        window.openAtPage(pageGoal);
     }
 }
