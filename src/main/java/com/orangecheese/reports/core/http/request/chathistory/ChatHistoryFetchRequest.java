@@ -9,10 +9,10 @@ import com.orangecheese.reports.core.http.request.HTTPRequestWithResponse;
 import com.orangecheese.reports.core.http.request.IHTTPBody;
 import com.orangecheese.reports.core.http.response.ChatHistoryEntry;
 import com.orangecheese.reports.core.http.response.ChatHistoryResponse;
+import com.orangecheese.reports.utility.DateUtility;
 import com.orangecheese.reports.utility.EmptyRecord;
 
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.*;
 import java.util.function.Consumer;
@@ -49,8 +49,6 @@ public class ChatHistoryFetchRequest extends HTTPRequestWithResponse<ChatHistory
 
         List<ChatHistoryEntry> chatHistory = new ArrayList<>();
 
-        DateTimeFormatter dateTimeFormat = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.S'Z'");
-
         while(chatHistoryIterator.hasNext()) {
             JsonElement chatHistoryElement = chatHistoryIterator.next();
             JsonObject chatHistoryObject = chatHistoryElement.getAsJsonObject();
@@ -62,8 +60,8 @@ public class ChatHistoryFetchRequest extends HTTPRequestWithResponse<ChatHistory
 
             LocalDateTime createdAt, updatedAt;
             try {
-                createdAt = LocalDateTime.parse(chatHistoryObject.get("created_at").getAsString(), dateTimeFormat);
-                updatedAt = LocalDateTime.parse(chatHistoryObject.get("updated_at").getAsString(), dateTimeFormat);
+                createdAt = DateUtility.isoDateTimeToLocalDateTime(chatHistoryObject.get("created_at").getAsString());
+                updatedAt = DateUtility.isoDateTimeToLocalDateTime(chatHistoryObject.get("updated_at").getAsString());
             } catch (DateTimeParseException e) {
                 throw new RuntimeException(e);
             }

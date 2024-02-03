@@ -20,6 +20,7 @@ import org.bukkit.profile.PlayerProfile;
 
 import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.UUID;
 import java.util.function.Consumer;
 
@@ -64,10 +65,10 @@ public class ChatHistoryCommand implements ICommandArgument {
 
                 if(historyEntries.length > 0) {
                     for(ChatHistoryEntry chatHistoryEntry : historyEntries) {
-                        SimpleDateFormat dateFormatter = new SimpleDateFormat("dd MMM yyyy HH:mm:ss");
+                        DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("dd MMM yyyy HH:mm:ss");
                         String timezone = ReportsPlugin.getInstance().getReportsConfig().getLocalization().getTimezone();
                         LocalDateTime timezoneAwareDateTime = DateUtility.convertFromGMT(chatHistoryEntry.getCreatedAt(), timezone);
-                        String formattedDateTime = dateFormatter.format(timezoneAwareDateTime);
+                        String formattedDateTime = dateTimeFormatter.format(timezoneAwareDateTime);
                         String message =
                                 ChatColor.GRAY + "[" +
                                         ChatColor.DARK_GRAY + formattedDateTime +
