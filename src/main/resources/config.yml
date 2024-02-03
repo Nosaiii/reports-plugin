@@ -5,6 +5,10 @@ api:
   port: 443
   version: 1
 
+# Settings for displaying specific localized text.
+localization:
+  timezone: 'GMT+1'
+
 # Settings to customize the Reports menu.
 menu:
   title-color: 'r'

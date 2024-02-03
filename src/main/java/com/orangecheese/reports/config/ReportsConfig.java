@@ -11,6 +11,8 @@ public class ReportsConfig {
 
     private final APIConfig apiConfig;
 
+    private final LocalizationConfig localizationConfig;
+
     private final MenuConfig menuConfig;
 
     private final PluginConfig pluginConfig;
@@ -21,6 +23,7 @@ public class ReportsConfig {
         this.configuration = ReportsPlugin.getInstance().getConfig();
 
         apiConfig = new APIConfig(getConfigurationSection("api"));
+        localizationConfig = new LocalizationConfig(getConfigurationSection("localization"));
         menuConfig = new MenuConfig(getConfigurationSection("menu"));
         pluginConfig = new PluginConfig(getConfigurationSection("plugin"));
         debugConfig = new DebugConfig(getConfigurationSection("debug"));
@@ -28,6 +31,10 @@ public class ReportsConfig {
 
     public APIConfig getApi() {
         return apiConfig;
+    }
+
+    public LocalizationConfig getLocalization() {
+        return localizationConfig;
     }
 
     public MenuConfig getMenu() {
