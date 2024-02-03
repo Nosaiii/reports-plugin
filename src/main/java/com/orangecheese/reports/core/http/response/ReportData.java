@@ -2,9 +2,9 @@ package com.orangecheese.reports.core.http.response;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.orangecheese.reports.utility.DateUtility;
 
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.UUID;
 
@@ -54,11 +54,10 @@ public class ReportData<T> {
         String message = json.get("message").getAsString();
         boolean resolved = json.get("resolved").getAsBoolean();
 
-        DateTimeFormatter dateFormat = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.S'Z'");
         LocalDateTime createdAt, updatedAt;
         try {
-            createdAt = LocalDateTime.parse(json.get("created_at").getAsString(), dateFormat);
-            updatedAt = LocalDateTime.parse(json.get("updated_at").getAsString(), dateFormat);
+            createdAt = DateUtility.isoDateTimeToLocalDateTime(json.get("created_at").getAsString());
+            updatedAt = DateUtility.isoDateTimeToLocalDateTime(json.get("updated_at").getAsString());
         } catch (DateTimeParseException e) {
             throw new RuntimeException(e);
         }

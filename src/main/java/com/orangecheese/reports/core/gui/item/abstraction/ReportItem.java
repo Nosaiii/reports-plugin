@@ -20,6 +20,7 @@ import org.bukkit.util.ChatPaginator;
 
 import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 public abstract class ReportItem<T> extends WindowItem {
@@ -88,8 +89,8 @@ public abstract class ReportItem<T> extends WindowItem {
             String timezone = ReportsPlugin.getInstance().getReportsConfig().getLocalization().getTimezone();
             LocalDateTime timezoneAwareDateTime = DateUtility.convertFromGMT(reportData.getCreatedAt(), timezone);
 
-            SimpleDateFormat submissionDateFormat = new SimpleDateFormat("dd MMMM yyyy");
-            SimpleDateFormat submissionTimeFormat = new SimpleDateFormat("HH:mm:ss");
+            DateTimeFormatter submissionDateFormat = DateTimeFormatter.ofPattern("dd MMM yyyy");
+            DateTimeFormatter submissionTimeFormat = DateTimeFormatter.ofPattern("HH:mm:ss");
 
             String dateString = submissionDateFormat.format(timezoneAwareDateTime);
             String timeString = submissionTimeFormat.format(timezoneAwareDateTime);

@@ -3,9 +3,12 @@ package com.orangecheese.reports.utility;
 import com.orangecheese.reports.ReportsPlugin;
 
 import java.time.*;
+import java.time.format.DateTimeFormatter;
 import java.util.logging.Level;
 
 public final class DateUtility {
+    private static final DateTimeFormatter ISO_DATETIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSSSS'Z'");
+
     public static LocalDateTime convertFromGMT(LocalDateTime date, String timezone) {
         ZoneId sourceZone = ZoneId.of("GMT");
 
@@ -21,5 +24,9 @@ public final class DateUtility {
         ZonedDateTime targetZonedDate = sourceZonedDate.withZoneSameInstant(targetZone);
 
         return targetZonedDate.toLocalDateTime();
+    }
+
+    public static LocalDateTime isoDateTimeToLocalDateTime(String dateTime) {
+        return LocalDateTime.parse(dateTime, ISO_DATETIME_FORMATTER);
     }
 }
