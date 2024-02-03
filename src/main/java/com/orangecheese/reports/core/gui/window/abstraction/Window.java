@@ -71,9 +71,13 @@ public abstract class Window {
 
     public abstract void onInitialize(int page);
 
-    public void open(int page) {
-        refresh(page);
+    public void open() {
+        refresh(1);
         history.add(new WindowHistoryEntry(this, page));
+    }
+
+    public void openAtPage(int page) {
+        refresh(page);
     }
 
     public void refresh(int page) {
@@ -136,10 +140,6 @@ public abstract class Window {
         for(int slot : slots) {
             inventory.setItem(slot, item.getItemStack());
         }
-    }
-
-    public void setPage(int page) {
-        open(page);
     }
 
     private void build() {
