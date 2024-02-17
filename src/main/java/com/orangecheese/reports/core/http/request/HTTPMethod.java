@@ -2,7 +2,8 @@ package com.orangecheese.reports.core.http.request;
 
 public enum HTTPMethod {
     GET("GET"),
-    POST("POST");
+    POST("POST"),
+    DELETE("DELETE");
 
     private final String value;
 

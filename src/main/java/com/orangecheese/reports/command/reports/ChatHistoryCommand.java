@@ -1,5 +1,6 @@
 package com.orangecheese.reports.command.reports;
 
+import com.orangecheese.reports.ReportsPlugin;
 import com.orangecheese.reports.binding.ServiceContainer;
 import com.orangecheese.reports.command.BaseCommand;
 import com.orangecheese.reports.command.ICommandArgument;
@@ -8,6 +9,7 @@ import com.orangecheese.reports.core.http.request.chathistory.ChatHistoryFetchRe
 import com.orangecheese.reports.core.http.response.ChatHistoryEntry;
 import com.orangecheese.reports.core.io.ContainerCache;
 import com.orangecheese.reports.service.PlayerProfileService;
+import com.orangecheese.reports.utility.DateUtility;
 import net.md_5.bungee.api.chat.ClickEvent;
 import net.md_5.bungee.api.chat.HoverEvent;
 import net.md_5.bungee.api.chat.TextComponent;
@@ -17,6 +19,8 @@ import org.bukkit.entity.Player;
 import org.bukkit.profile.PlayerProfile;
 
 import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.UUID;
 import java.util.function.Consumer;
 
@@ -59,10 +63,12 @@ public class ChatHistoryCommand implements ICommandArgument {
                 player.sendMessage("");
                 player.sendMessage(ChatColor.GRAY + "Chat history of '" + ChatColor.RED + targetName + ChatColor.GRAY + "' (" + pageNumbers + ChatColor.GRAY + "):");
 
-                if(historyEntries.length > 0) {
-                    for(ChatHistoryEntry chatHistoryEntry : historyEntries) {
-                        SimpleDateFormat dateFormatter = new SimpleDateFormat("dd MMM yyyy HH:mm:ss");
-                        String formattedDateTime = dateFormatter.format(chatHistoryEntry.getCreatedAt());
+                if (historyEntries.length > 0) {
+                    for (ChatHistoryEntry chatHistoryEntry : historyEntries) {
+                        DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("dd MMM yyyy HH:mm:ss");
+                        String timezone = ReportsPlugin.getInstance().getReportsConfig().getLocalization().getTimezone();
+                        LocalDateTime timezoneAwareDateTime = DateUtility.convertFromGMT(chatHistoryEntry.getCreatedAt(), timezone);
+                        String formattedDateTime = dateTimeFormatter.format(timezoneAwareDateTime);
                         String message =
                                 ChatColor.GRAY + "[" +
                                         ChatColor.DARK_GRAY + formattedDateTime +
@@ -75,23 +81,33 @@ public class ChatHistoryCommand implements ICommandArgument {
                     player.sendMessage(ChatColor.GRAY + "No entries.");
                 }
 
-                TextComponent previousPageComponent = new TextComponent("[Previous page]");
-                TextComponent buttonSpacingComponent = new TextComponent(" ");
-                TextComponent nextPageComponent = new TextComponent("[Next page]");
-
                 String baseCommandString = "/reports chathistory " + finalTargetProfile.getUniqueId();
-                int previousPage = currentPage - 1;
-                int nextPage = currentPage + 1;
 
-                previousPageComponent.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, baseCommandString + " " + previousPage));
-                previousPageComponent.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text("← Go to the previous page")));
-                nextPageComponent.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, baseCommandString + " " + nextPage));
-                nextPageComponent.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text("Go to the next page →")));
+                boolean hasPrevious = currentPage > 1;
+                boolean hasNext = currentPage < maxPages;
 
-                previousPageComponent.setColor(net.md_5.bungee.api.ChatColor.RED);
-                nextPageComponent.setColor(net.md_5.bungee.api.ChatColor.RED);
+                TextComponent previousPageComponent = new TextComponent();
+                if (hasPrevious) {
+                    int previousPage = currentPage - 1;
+                    previousPageComponent = new TextComponent("[Previous page]");
+                    previousPageComponent.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, baseCommandString + " " + previousPage));
+                    previousPageComponent.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text("← Go to the previous page")));
+                    previousPageComponent.setColor(net.md_5.bungee.api.ChatColor.RED);
+                }
 
-                player.spigot().sendMessage(previousPageComponent, buttonSpacingComponent, nextPageComponent);
+                TextComponent nextPageComponent = new TextComponent();
+                if(hasNext) {
+                    int nextPage = currentPage + 1;
+                    nextPageComponent = new TextComponent("[Next page]");
+                    nextPageComponent.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, baseCommandString + " " + nextPage));
+                    nextPageComponent.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text("Go to the next page →")));
+                    nextPageComponent.setColor(net.md_5.bungee.api.ChatColor.RED);
+                }
+
+                if(hasPrevious || hasNext) {
+                    TextComponent buttonSpacingComponent = new TextComponent(hasPrevious ? " " : "");
+                    player.spigot().sendMessage(previousPageComponent, buttonSpacingComponent, nextPageComponent);
+                }
 
                 player.sendMessage("");
             });

@@ -1,6 +1,6 @@
 package com.orangecheese.reports.core.http.response;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 public class ChatHistoryEntry {
@@ -12,11 +12,11 @@ public class ChatHistoryEntry {
 
     private final String message;
 
-    private final Date createdAt;
+    private final LocalDateTime createdAt;
 
-    private final Date updatedAt;
+    private final LocalDateTime updatedAt;
 
-    public ChatHistoryEntry(int id, int containerId, UUID playerUuid, String message, Date createdAt, Date updatedAt) {
+    public ChatHistoryEntry(int id, int containerId, UUID playerUuid, String message, LocalDateTime createdAt, LocalDateTime updatedAt) {
         this.id = id;
         this.containerId = containerId;
         this.playerUuid = playerUuid;
@@ -41,11 +41,11 @@ public class ChatHistoryEntry {
         return message;
     }
 
-    public Date getCreatedAt() {
+    public LocalDateTime getCreatedAt() {
         return createdAt;
     }
 
-    public Date getUpdatedAt() {
+    public LocalDateTime getUpdatedAt() {
         return updatedAt;
     }
 }

@@ -9,11 +9,13 @@ import com.orangecheese.reports.core.http.request.container.ContainerAuthRequest
 import com.orangecheese.reports.core.http.response.ContainerAuthResponse;
 import com.orangecheese.reports.core.http.response.MessageResponse;
 import org.apache.commons.io.FileUtils;
+import org.bukkit.Bukkit;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.function.Consumer;
+import java.util.logging.Level;
 
 public class ContainerCache {
     private final File file;
@@ -48,6 +50,13 @@ public class ContainerCache {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    public void unset() {
+        if(file.delete())
+            return;
+
+        Bukkit.getServer().getLogger().log(Level.WARNING, "Due to an unknown reason, the container cache file could not be deleted.");
     }
 
     public String getAccessToken() {
