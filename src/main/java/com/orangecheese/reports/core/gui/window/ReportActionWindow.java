@@ -1,6 +1,7 @@
 package com.orangecheese.reports.core.gui.window;
 
 import com.orangecheese.reports.core.gui.data.WindowHistory;
+import com.orangecheese.reports.core.gui.item.DeleteReportItem;
 import com.orangecheese.reports.core.gui.item.ResolveReportItem;
 import com.orangecheese.reports.core.gui.item.TeleportToPlayerItem;
 import com.orangecheese.reports.core.gui.item.abstraction.WindowItem;
@@ -27,6 +28,9 @@ public class ReportActionWindow<T> extends Window {
     public void onInitialize(int page) {
         ResolveReportItem resolveReportItem = new ResolveReportItem(this, reportData.getId(), !reportData.isResolved());
         addItem(resolveReportItem);
+
+        DeleteReportItem deleteReportItem = new DeleteReportItem(this, reportData.getId());
+        addItem(deleteReportItem);
 
         if (reportData.getReporterUuid() != null) {
             TeleportToPlayerItem teleportToPlayerItem = new TeleportToPlayerItem(this, reportData.getReporterUuid(), "Teleport to reporter");

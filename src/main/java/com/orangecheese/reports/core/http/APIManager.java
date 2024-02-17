@@ -44,7 +44,7 @@ public class APIManager {
 
     private Runnable failedConnectionHandler;
 
-    private final HashMap<HTTPMethod, IParameterEncoder> encoders;
+    private final HashMap<Integer, IParameterEncoder> encoders;
 
     private final Queue<QueuedHTTPRequest> requestQueue;
 
@@ -68,8 +68,8 @@ public class APIManager {
         }
 
         encoders = new HashMap<>();
-        encoders.put(HTTPMethod.GET, new GetParameterEncoder());
-        encoders.put(HTTPMethod.POST, new PostParameterEncoder());
+        encoders.put(HTTPMethod.GET.ordinal(), new GetParameterEncoder());
+        encoders.put(HTTPMethod.POST.ordinal() | HTTPMethod.DELETE.ordinal(), new PostParameterEncoder());
 
         requestQueue = new LinkedList<>();
     }
@@ -170,7 +170,7 @@ public class APIManager {
 
                 if(request instanceof IHTTPBody requestBody && request.getMethod() == HTTPMethod.GET) {
                     JsonObject requestBodyJson = requestBody.generateJson();
-                    byte[] bodyBytes = encoders.get(request.getMethod()).encode(requestBodyJson);
+                    byte[] bodyBytes = encoders.get(HTTPMethod.GET.ordinal()).encode(requestBodyJson);
 
                     String queryString = new String(bodyBytes, StandardCharsets.UTF_8);
                     requestUri = new URIBuilder(requestUri).setCustomQuery(queryString).build();
@@ -184,7 +184,7 @@ public class APIManager {
 
                 if(request instanceof IHTTPBody requestBody && request.getMethod() != HTTPMethod.GET) {
                     JsonObject requestBodyJson = requestBody.generateJson();
-                    byte[] bodyBytes = encoders.get(request.getMethod()).encode(requestBodyJson);
+                    byte[] bodyBytes = encoders.get(HTTPMethod.POST.ordinal() | HTTPMethod.DELETE.ordinal()).encode(requestBodyJson);
 
                     connection.setDoOutput(true);
                     OutputStream outputStream = connection.getOutputStream();

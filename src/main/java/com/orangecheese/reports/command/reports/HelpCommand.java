@@ -17,7 +17,7 @@ public class HelpCommand implements ICommandArgument {
 
     @Override
     public String getUsage() {
-        return "» You will be shown this help page";
+        return "";
     }
 
     @Override

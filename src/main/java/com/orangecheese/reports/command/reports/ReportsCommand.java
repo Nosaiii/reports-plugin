@@ -14,5 +14,7 @@ public class ReportsCommand extends BaseCommand {
         addArgument("changekeyphrase", new ChangeKeyPhraseCommand());
         addArgument("chathistory", new ChatHistoryCommand());
         addArgument("reload", new ReloadCommand());
+        addArgument("delete", new DeleteCommand());
+        addArgument("deletecurrent", new DeleteCurrentCommand());
     }
 }
