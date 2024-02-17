@@ -2,6 +2,7 @@ package com.orangecheese.reports.service;
 
 import com.orangecheese.reports.binding.ServiceConstructor;
 import com.orangecheese.reports.core.http.APIManager;
+import com.orangecheese.reports.core.http.request.report.DeleteReportRequest;
 import com.orangecheese.reports.core.http.request.report.ResolveReportRequest;
 import com.orangecheese.reports.core.io.ContainerCache;
 import org.bukkit.ChatColor;
@@ -28,6 +29,16 @@ public final class ReportService {
                     player.closeInventory();
                     player.sendMessage(ChatColor.RED + "Failed to resolve the report: " + message.getMessage());
                 });
+        apiManager.makeRequest(request);
+    }
+
+    public void delete(Player player, int id, Runnable onSuccess) {
+        DeleteReportRequest request = new DeleteReportRequest(
+                containerCache.getAccessToken(),
+                id,
+                onSuccess,
+                message -> player.sendMessage(ChatColor.RED + "An unknown error occurred while trying to delete the report: " + message.getMessage())
+        );
         apiManager.makeRequest(request);
     }
 }
