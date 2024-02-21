@@ -16,5 +16,6 @@ public class ReportsCommand extends BaseCommand {
         addArgument("reload", new ReloadCommand());
         addArgument("delete", new DeleteCommand());
         addArgument("deletecurrent", new DeleteCurrentCommand());
+        addArgument("discordwebhook", new DiscordWebhookCommand());
     }
 }
