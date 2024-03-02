@@ -116,7 +116,10 @@ public abstract class Window {
     public void addItem(WindowItem item) {
         item.buildInitial(player);
         items.add(item);
+
         slottedItems = layout.map(getItems());
+        int originalInventorySize = layout.getLayoutSize(slottedItems);
+        buildFilters(originalInventorySize);
 
         if(inventory != null)
             notifyUpdate(item);
