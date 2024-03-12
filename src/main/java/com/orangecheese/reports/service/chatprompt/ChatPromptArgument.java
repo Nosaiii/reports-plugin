@@ -1,7 +1,11 @@
 package com.orangecheese.reports.service.chatprompt;
 
+import org.bukkit.ChatColor;
+
 public class ChatPromptArgument {
     private final String prompt;
+
+    private final boolean stripColors;
 
     private String value;
 
@@ -9,11 +13,14 @@ public class ChatPromptArgument {
 
     private ChatPromptCondition condition;
 
-    public ChatPromptArgument(String prompt) {
+    public ChatPromptArgument(String prompt, boolean stripColors) {
         this.prompt = prompt;
+        this.stripColors = stripColors;
     }
 
     public void setValue(String value) {
+        if(stripColors)
+            value = ChatColor.stripColor(value);
         this.value = value;
     }
 
