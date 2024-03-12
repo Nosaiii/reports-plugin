@@ -58,9 +58,9 @@ public class ReportPlayerCommandArgument implements ICommandArgument {
                     });
         });
 
-        ChatPromptArgument playerArgument = new ChatPromptArgument("What player would you like to report?");
-        ChatPromptArgument messageArgument = new ChatPromptArgument("What do you want to report the player about?");
-        ChatPromptArgument anonymousChatPromptArgument = new ChatPromptArgument("Would you like to report anonymously? (Yes/No)");
+        ChatPromptArgument playerArgument = new ChatPromptArgument("What player would you like to report?", true);
+        ChatPromptArgument messageArgument = new ChatPromptArgument("What do you want to report the player about?", true);
+        ChatPromptArgument anonymousChatPromptArgument = new ChatPromptArgument("Would you like to report anonymously? (Yes/No)", true);
         anonymousChatPromptArgument.setCondition(new ChatPromptCondition(
                 argument -> argument.matches("(?i)^(yes|no)$"),
                 "You have given an invalid yes/no value! Please try again."));

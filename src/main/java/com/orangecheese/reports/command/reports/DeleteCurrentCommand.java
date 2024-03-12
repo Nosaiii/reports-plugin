@@ -45,7 +45,8 @@ public class DeleteCurrentCommand implements ICommandArgument {
 
         ChatPromptArgument confirmArgument = new ChatPromptArgument("Are you sure you want to delete the current container? " +
                 "Any reports associated to the container will also be deleted. " +
-                "Type 'confirm' to verify the deletion of the container.");
+                "Type 'confirm' to verify the deletion of the container.",
+                true);
         prompt.addArgument(confirmArgument);
 
         prompt.start();

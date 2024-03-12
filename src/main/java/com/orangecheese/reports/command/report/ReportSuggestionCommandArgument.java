@@ -40,9 +40,9 @@ public class ReportSuggestionCommandArgument implements ICommandArgument {
             apiManager.makeRequest(reportRequest);
         });
 
-        prompt.addArgument(new ChatPromptArgument("Describe the suggestion that you would like to submit:"));
+        prompt.addArgument(new ChatPromptArgument("Describe the suggestion that you would like to submit:", true));
 
-        ChatPromptArgument anonymousChatPromptArgument = new ChatPromptArgument("Would you like to report anonymously? (Yes/No)");
+        ChatPromptArgument anonymousChatPromptArgument = new ChatPromptArgument("Would you like to report anonymously? (Yes/No)", true);
         anonymousChatPromptArgument.setCondition(new ChatPromptCondition(
                 argument -> argument.matches("(?i)^(yes|no)$"),
                 "You have given an invalid yes/no value! Please try again."));

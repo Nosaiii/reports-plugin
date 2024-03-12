@@ -42,10 +42,10 @@ public class ReportBugCommandArgument implements ICommandArgument {
             apiManager.makeRequest(reportRequest);
         });
 
-        prompt.addArgument(new ChatPromptArgument("Describe the bug that you had encountered:"));
-        prompt.addArgument(new ChatPromptArgument("Describe the steps to reproduce the bug:"));
+        prompt.addArgument(new ChatPromptArgument("Describe the bug that you had encountered:", true));
+        prompt.addArgument(new ChatPromptArgument("Describe the steps to reproduce the bug:", true));
 
-        ChatPromptArgument anonymousChatPromptArgument = new ChatPromptArgument("Would you like to report anonymously? (Yes/No)");
+        ChatPromptArgument anonymousChatPromptArgument = new ChatPromptArgument("Would you like to report anonymously? (Yes/No)", true);
         anonymousChatPromptArgument.setCondition(new ChatPromptCondition(
                 argument -> argument.matches("(?i)^(yes|no)$"),
                 "You have given an invalid yes/no value! Please try again."));
