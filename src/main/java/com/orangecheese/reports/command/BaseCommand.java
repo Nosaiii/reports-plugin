@@ -11,8 +11,6 @@ import org.bukkit.entity.Player;
 
 import javax.annotation.Nonnull;
 import java.util.*;
-import java.util.function.BiPredicate;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 public abstract class BaseCommand implements CommandExecutor {
