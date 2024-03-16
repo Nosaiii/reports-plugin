@@ -114,7 +114,7 @@ public abstract class BaseCommand implements CommandExecutor {
 
         player.sendMessage(ChatColor.RED + "Available arguments:");
 
-        for(String usageStringKey : getUsageStringKeys()) {
+        for(String usageStringKey : arguments.keySet()) {
             String usageString = arguments.get(usageStringKey).getUsage();
             String baseCommand = StringUtils.capitalize(usageStringKey);
             player.sendMessage(ChatColor.GRAY + "- " + ChatColor.RED + ChatColor.BOLD + baseCommand + " " + ChatColor.GRAY + usageString);
@@ -127,16 +127,6 @@ public abstract class BaseCommand implements CommandExecutor {
 
         player.sendMessage(ChatColor.DARK_RED + reason);
         player.sendMessage(ChatColor.GRAY + "Usage: /" + command + " " + ChatColor.RED + ChatColor.BOLD + baseCommand + " " + ChatColor.GRAY + usage);
-    }
-
-    private Set<String> getUsageStringKeys() {
-        return arguments
-                .keySet()
-                .stream()
-                .collect(Collectors.toMap(
-                        key -> key,
-                        key -> arguments.get(key).getUsage())
-                ).keySet();
     }
 
     public boolean hasPermission(Player player) {
