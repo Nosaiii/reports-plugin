@@ -10,6 +10,7 @@ import com.orangecheese.reports.event.ChatHistoryEvent;
 import com.orangecheese.reports.event.PlayerProfileRegistrationEvent;
 import com.orangecheese.reports.service.PlayerProfileService;
 import com.orangecheese.reports.service.ReportService;
+import com.orangecheese.reports.utility.PluginUpdateChecker;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandExecutor;
@@ -35,6 +36,8 @@ public class ReportsPlugin extends JavaPlugin {
         ServiceContainer.bind(ContainerCache.class);
         ServiceContainer.bind(PlayerProfileService.class);
         ServiceContainer.bind(ReportService.class);
+
+        checkForUpdates();
 
         if(!initializeAPI())
             return;
@@ -71,6 +74,17 @@ public class ReportsPlugin extends JavaPlugin {
         }
 
         return true;
+    }
+
+    private void checkForUpdates() {
+        PluginUpdateChecker updateChecker = new PluginUpdateChecker(this, 114813);
+        updateChecker.requestVersion((version, isOutdated) -> {
+            if(!isOutdated) {
+                getLogger().info("The plugin is up to date!");
+                return;
+            }
+            getLogger().warning("The plugin is outdated! A new version (v" + version + ") can be downloaded from SpigotMC.");
+        });
     }
 
     private void registerEvents(Listener listener) {
