@@ -1,5 +1,6 @@
 package com.orangecheese.reports.command;
 
+import com.orangecheese.reports.utility.CaseInsensitiveLinkedHashMap;
 import org.apache.commons.lang.StringUtils;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
@@ -19,7 +20,7 @@ public abstract class BaseCommand implements CommandExecutor {
 
     private final String permission;
 
-    private final LinkedHashMap<String, ICommandArgument> arguments;
+    private final CaseInsensitiveLinkedHashMap<ICommandArgument> arguments;
 
     private final ArrayList<CommandCondition> conditions;
 
@@ -28,7 +29,7 @@ public abstract class BaseCommand implements CommandExecutor {
     public BaseCommand(String command, String permission) {
         this.command = command;
         this.permission = permission;
-        arguments = new LinkedHashMap<>();
+        arguments = new CaseInsensitiveLinkedHashMap<>();
         conditions = new ArrayList<>();
     }
 
